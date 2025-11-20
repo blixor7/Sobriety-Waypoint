@@ -117,7 +117,7 @@ export default function SignupScreen() {
     >
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <ArrowLeft size={24} color="#374151" />
+          <ArrowLeft size={24} color={theme.text} />
         </TouchableOpacity>
 
         <View style={styles.header}>
