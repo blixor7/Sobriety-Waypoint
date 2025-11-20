@@ -8,7 +8,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
   },
   name: 'Sobriety Waypoint',
-  owner: 'volvox',
+  owner: 'volvox-llc',
   slug: 'sobriety-waypoint',
   scheme: 'sobrietywaypoint',
   userInterfaceStyle: 'automatic',
@@ -17,7 +17,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   orientation: 'portrait',
   newArchEnabled: true,
   ios: {
-    bundleIdentifier: 'com.volvox.sobrietywaypoint',
+    bundleIdentifier: 'com.volvoxllc.sobrietywaypoint',
     icon: './assets/images/logo.png',
     supportsTablet: true,
     infoPlist: {
@@ -25,7 +25,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
   },
   android: {
-    package: 'com.volvox.sobrietywaypoint',
+    package: 'com.volvoxllc.sobrietywaypoint',
     icon: './assets/images/logo.png',
     adaptiveIcon: {
       backgroundColor: '#E6F4FE',
