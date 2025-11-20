@@ -7,7 +7,7 @@ version: 2
 updates:
   # Maintain dependencies for npm
   - package-ecosystem: 'npm'
-    directory: 'src/Volvox.Apollo.Web/ClientApp'
+    directory: '/'
     schedule:
       interval: 'daily'
     versioning-strategy: increase
@@ -30,17 +30,4 @@ updates:
       - 'BillChirico'
     labels:
       - 'github-actions'
-      - 'dependencies'
-
-  # Maintain dependencies for all dependencies
-  - package-ecosystem: 'composer'
-    directory: '/'
-    schedule:
-      interval: 'daily'
-    versioning-strategy: increase
-    assignees:
-      - 'BillChirico'
-    reviewers:
-      - 'BillChirico'
-    labels:
       - 'dependencies'
