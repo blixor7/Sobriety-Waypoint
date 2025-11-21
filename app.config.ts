@@ -17,7 +17,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   orientation: 'portrait',
   newArchEnabled: true,
   ios: {
-    bundleIdentifier: 'com.volvoxllc.sobrietywaypoint',
+    bundleIdentifier: 'com.volvox.sobrietywaypoint',
     icon: './assets/images/logo.png',
     supportsTablet: true,
     infoPlist: {
@@ -25,7 +25,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
   },
   android: {
-    package: 'com.volvoxllc.sobrietywaypoint',
+    package: 'com.volvox.sobrietywaypoint',
     icon: './assets/images/logo.png',
     adaptiveIcon: {
       backgroundColor: '#E6F4FE',
