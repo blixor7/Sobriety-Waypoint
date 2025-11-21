@@ -56,10 +56,6 @@ export function initializeSentry(): void {
       // Adds more context data to events (IP address, cookies, user, etc.)
       sendDefaultPii: true,
 
-      // Enable Logs and Metrics
-      enableLogs: true,
-      enableMetrics: true,
-
       // Session tracking
       enableAutoSessionTracking: true,
       sessionTrackingIntervalMillis: 30000,
