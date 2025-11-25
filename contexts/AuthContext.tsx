@@ -103,46 +103,79 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchProfile(session.user.id).finally(() => setLoading(false));
-      } else {
-        setLoading(false);
-      }
-    });
+    // Flag to prevent race conditions between getSession and onAuthStateChange
+    let isMounted = true;
+    let initialLoadComplete = false;
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      const {
-        data: { subscription },
-      } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    /**
+     * Fetches initial session and profile on mount.
+     * Sets loading to false once complete.
+     */
+    const initializeAuth = async () => {
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+
+        if (!isMounted) return;
+
         setSession(session);
         setUser(session?.user ?? null);
 
         if (session?.user) {
-          setLoading(true);
-          await createOAuthProfileIfNeeded(session.user);
           await fetchProfile(session.user.id);
+        }
+      } catch (error) {
+        console.error('Error initializing auth:', error);
+      } finally {
+        if (isMounted) {
+          initialLoadComplete = true;
           setLoading(false);
         }
-      });
+      }
+    };
+
+    initializeAuth();
+
+    /**
+     * Listens for auth state changes (sign in, sign out, token refresh).
+     * Only processes changes after initial load is complete to avoid race conditions.
+     */
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (!isMounted) return;
+
       setSession(session);
       setUser(session?.user ?? null);
 
       if (session?.user) {
-        await createOAuthProfileIfNeeded(session.user);
-        await fetchProfile(session.user.id);
-        setLoading(false);
+        // Only set loading for state changes after initial load
+        if (initialLoadComplete) {
+          setLoading(true);
+        }
+        try {
+          await createOAuthProfileIfNeeded(session.user);
+          await fetchProfile(session.user.id);
+        } catch (error) {
+          console.error('Error handling auth state change:', error);
+        } finally {
+          if (isMounted) {
+            setLoading(false);
+          }
+        }
       } else {
         setProfile(null);
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   // Update Sentry context when profile changes
