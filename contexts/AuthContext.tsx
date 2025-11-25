@@ -32,11 +32,11 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   profile: null,
   loading: true,
-  signIn: async () => {},
-  signInWithGoogle: async () => {},
-  signUp: async () => {},
-  signOut: async () => {},
-  refreshProfile: async () => {},
+  signIn: async () => { },
+  signInWithGoogle: async () => { },
+  signUp: async () => { },
+  signOut: async () => { },
+  refreshProfile: async () => { },
 });
 
 export const useAuth = () => {
@@ -313,6 +313,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  /**
+   * Signs up a new user with email/password and creates their profile.
+   * Checks if a profile already exists before attempting to create one.
+   *
+   * @param email - User's email address
+   * @param password - User's password
+   * @param firstName - User's first name
+   * @param lastInitial - User's last initial
+   */
   const signUp = async (
     email: string,
     password: string,
@@ -326,12 +335,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (error) throw error;
 
     if (data.user) {
+      // Check if profile already exists (could happen if user previously signed up)
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', data.user.id)
+        .maybeSingle();
+
+      if (existingProfile) {
+        // Profile already exists - this is OK, user might be re-signing up
+        console.log('Profile already exists for user', data.user.id);
+        return;
+      }
+
+      // Create new profile
       const { error: profileError } = await supabase.from('profiles').insert({
         id: data.user.id,
         email: email,
         first_name: firstName,
         last_initial: lastInitial.toUpperCase(),
       });
+
       if (profileError) {
         // Profile creation failed - the user account exists but is incomplete
         // Could attempt to delete the user, but auth.admin.deleteUser requires service role

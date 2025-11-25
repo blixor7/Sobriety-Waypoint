@@ -74,14 +74,7 @@ export default function SignupScreen() {
     setLoading(true);
     try {
       await signUp(email, password, firstName, lastInitial);
-      if (Platform.OS === 'web') {
-        window.alert('Account created successfully!');
-        router.replace('/onboarding');
-      } else {
-        Alert.alert('Success', 'Account created successfully!', [
-          { text: 'OK', onPress: () => router.replace('/onboarding') },
-        ]);
-      }
+      router.replace('/onboarding');
     } catch (error: any) {
       if (Platform.OS === 'web') {
         window.alert('Error: ' + (error.message || 'Failed to create account'));
