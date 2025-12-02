@@ -49,14 +49,11 @@ interface TimelineEvent {
 }
 
 /**
- * Displays the user's recovery journey timeline with milestones.
+ * Renders the user's recovery journey screen containing sobriety metrics and a chronological timeline.
  *
- * @remarks
- * This component fetches timeline events from Supabase and displays
- * them in chronological order with visual indicators. Day counts
- * automatically update at midnight via the useDaysSober hook.
+ * Shows the sobriety start, slip-ups, step completions, task completions, and milestone events alongside summary statistics and a visual timeline.
  *
- * @see {@link useDaysSober} for sobriety calculation logic
+ * @returns The React element for the Journey screen
  */
 export default function JourneyScreen() {
   const { profile } = useAuth();
@@ -65,6 +62,7 @@ export default function JourneyScreen() {
     daysSober,
     journeyDays,
     hasSlipUps,
+    currentStreakStartDate,
     // mostRecentSlipUp available for future use (e.g., slip-up details modal)
     loading: loadingDaysSober,
   } = useDaysSober();
@@ -231,9 +229,14 @@ export default function JourneyScreen() {
     }
 
     // 6. Sobriety milestones
-    // Use the daysSober from the hook which updates at midnight
-    if (profile.sobriety_date) {
-      const sobrietyDate = parseDateAsLocal(profile.sobriety_date);
+    // IMPORTANT: Milestones are calculated from currentStreakStartDate (recovery restart date),
+    // NOT from the original profile.sobriety_date. This is intentional:
+    // - If user has slip-ups, milestones reset to their most recent recovery restart
+    // - If no slip-ups, currentStreakStartDate equals sobriety_date
+    // This behavior matches recovery program conventions where milestones celebrate
+    // continuous sobriety from the most recent restart, not total time in program.
+    if (currentStreakStartDate) {
+      const streakStartDate = parseDateAsLocal(currentStreakStartDate);
 
       const milestones = [
         { days: 30, label: '30 Days Sober' },
@@ -247,7 +250,7 @@ export default function JourneyScreen() {
 
       milestones.forEach(({ days, label }) => {
         if (daysSober >= days) {
-          const milestoneDate = new Date(sobrietyDate);
+          const milestoneDate = new Date(streakStartDate);
           milestoneDate.setDate(milestoneDate.getDate() + days);
 
           timelineEvents.push({
@@ -267,7 +270,7 @@ export default function JourneyScreen() {
     timelineEvents.sort((a, b) => b.date.getTime() - a.date.getTime());
 
     setEvents(timelineEvents);
-  }, [profile, theme, timelineData, daysSober]); // Re-run when raw data, display prefs, or sobriety calculation changes
+  }, [profile, theme, timelineData, daysSober, currentStreakStartDate]); // Re-run when raw data, display prefs, or sobriety calculation changes
 
   useFocusEffect(
     useCallback(() => {

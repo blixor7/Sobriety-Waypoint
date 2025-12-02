@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useRef, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -27,23 +27,12 @@ import {
 } from '@/lib/date';
 
 /**
- * OnboardingScreen handles the initial user setup flow after authentication.
+ * Renders the two-step onboarding flow used after authentication to collect the user's name and sobriety date.
  *
- * The onboarding consists of two steps:
- * - Step 1: Collects user's first name and last initial for personalization
- * - Step 2: Collects the user's sobriety date to track their recovery journey
+ * The component updates the user's profile with the provided first name, last initial, and sobriety date,
+ * refreshes profile state, and navigates to the main app once the profile is complete.
  *
- * All users complete both steps to ensure complete profile setup.
- * Upon completion, the user's profile is updated and they are redirected to the main app.
- *
- * @returns The onboarding screen component with step-based navigation
- *
- * @example
- * ```tsx
- * // Used as a route in Expo Router - navigated to automatically
- * // when user is authenticated but profile is incomplete
- * <OnboardingScreen />
- * ```
+ * @returns A React element that renders the onboarding screen
  */
 export default function OnboardingScreen() {
   const { theme } = useTheme();
@@ -54,15 +43,59 @@ export default function OnboardingScreen() {
   // Pre-fill name fields from OAuth profile if available (e.g., Google sign-in)
   const [firstName, setFirstName] = useState(profile?.first_name ?? '');
   const [lastInitial, setLastInitial] = useState(profile?.last_initial ?? '');
-  const [sobrietyDate, setSobrietyDate] = useState(
+
+  // Stable maximum date for DateTimePicker to prevent iOS crash when value > maximumDate.
+  // Using useMemo ensures we don't create a new Date on every render, which could cause
+  // the maximumDate to be slightly before the stored sobrietyDate due to timing.
+  const maximumDate = useMemo(() => new Date(), []);
+
+  const [sobrietyDate, setSobrietyDate] = useState(() => {
     // Parse stored date in user's timezone (or device timezone as fallback)
-    profile?.sobriety_date
-      ? parseDateAsLocal(profile.sobriety_date, getUserTimezone(profile))
-      : new Date()
-  );
+    if (profile?.sobriety_date) {
+      const parsedDate = parseDateAsLocal(profile.sobriety_date, getUserTimezone(profile));
+      // Clamp to maximumDate to prevent iOS DateTimePicker crash
+      // (iOS throws 'Start date cannot be later in time than end date!' if value > maximumDate)
+      return parsedDate > maximumDate ? maximumDate : parsedDate;
+    }
+    return maximumDate;
+  });
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
+  // Track when we're waiting for profile to update after form submission
+  const [awaitingProfileUpdate, setAwaitingProfileUpdate] = useState(false);
+
+  // Navigate to main app when profile becomes complete after submission
+  // This ensures we only navigate AFTER React has processed the profile state update
+  useEffect(() => {
+    if (!awaitingProfileUpdate) return;
+
+    // Profile is complete - navigate to main app
+    if (profile?.sobriety_date && profile?.first_name && profile?.last_initial) {
+      router.replace('/(tabs)');
+      return;
+    }
+
+    // Add timeout protection to prevent user getting stuck indefinitely
+    // if profile refresh fails silently or profile never becomes complete
+    const timeout = setTimeout(() => {
+      if (awaitingProfileUpdate) {
+        setAwaitingProfileUpdate(false);
+        setLoading(false);
+        Alert.alert(
+          'Profile Update Timeout',
+          'Your profile update is taking longer than expected. Please try again.',
+          [{ text: 'OK' }]
+        );
+      }
+    }, 10000); // 10 second timeout
+
+    return () => clearTimeout(timeout);
+    // Note: router is intentionally excluded from deps because:
+    // We only want navigation to trigger when awaitingProfileUpdate or profile changes,
+    // not when the router object changes (which is assumed to be referentially stable in Expo Router based on current behavior, but this is not a guaranteed invariant).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [awaitingProfileUpdate, profile]);
 
   // Ref for field navigation
   const lastInitialRef = useRef<TextInput>(null);
@@ -107,8 +140,22 @@ export default function OnboardingScreen() {
 
       if (error) throw error;
 
+      // Refresh the profile state in AuthContext
+      // refreshProfile() catches errors internally and returns null on failure,
+      // so we proceed to set awaitingProfileUpdate regardless since the database
+      // update has already succeeded. The useEffect will only navigate if the
+      // profile state contains the expected fields.
       await refreshProfile();
-      router.replace('/(tabs)');
+
+      // Note: We can't check profile state here due to React's async state updates.
+      // The profile variable in this closure still holds the old value - the actual
+      // completeness check happens in the useEffect that watches awaitingProfileUpdate.
+
+      // Signal that we're ready to navigate once React processes the profile update
+      // The useEffect watching awaitingProfileUpdate will handle the actual navigation
+      // after React has propagated the new profile state through the component tree.
+      // Note: Navigation only occurs if profile has all required fields (checked in useEffect)
+      setAwaitingProfileUpdate(true);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to update profile';
       if (Platform.OS === 'web') {
@@ -230,7 +277,7 @@ export default function OnboardingScreen() {
             mode="date"
             display={Platform.OS === 'ios' ? 'spinner' : 'default'}
             onChange={onDateChange}
-            maximumDate={new Date()}
+            maximumDate={maximumDate}
           />
         )}
 

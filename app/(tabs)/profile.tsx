@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -129,6 +129,18 @@ function SponsorDaysDisplay({
   );
 }
 
+/**
+ * Displays the authenticated user's profile, sobriety journey, and sponsor/sponsee management UI.
+ *
+ * Shows the user's avatar, name, email, current days sober, journey start and current streak information.
+ * Provides actions to edit the sobriety date, log a slip-up, generate or join invite codes, and
+ * disconnect sponsor/sponsee relationships.
+ *
+ * Manages relationship and task statistics fetching, timezone-aware date handling for sobriety and
+ * slip-up flows, and creates relevant notifications when connections change or slip-ups are logged.
+ *
+ * @returns A React element that renders the profile screen UI.
+ */
 export default function ProfileScreen() {
   const { profile, refreshProfile } = useAuth();
   const { theme } = useTheme();
@@ -158,6 +170,10 @@ export default function ProfileScreen() {
 
   // User's timezone (stored in profile) with device timezone as fallback
   const userTimezone = getUserTimezone(profile);
+
+  // Stable maximum date for DateTimePicker to prevent iOS crash when value > maximumDate.
+  // iOS throws 'Start date cannot be later in time than end date!' if value > maximumDate.
+  const maximumDate = useMemo(() => new Date(), []);
 
   const fetchRelationships = useCallback(async () => {
     if (!profile) return;
@@ -549,7 +565,9 @@ export default function ProfileScreen() {
     if (profile?.sobriety_date) {
       // Parse using the user's stored timezone to maintain consistency
       // with how dates are saved (line 939 uses userTimezone)
-      setSelectedSobrietyDate(parseDateAsLocal(profile.sobriety_date, userTimezone));
+      const parsedDate = parseDateAsLocal(profile.sobriety_date, userTimezone);
+      // Clamp to maximumDate to prevent iOS DateTimePicker crash
+      setSelectedSobrietyDate(parsedDate > maximumDate ? maximumDate : parsedDate);
     }
     setShowSobrietyDatePicker(true);
   };
@@ -986,7 +1004,7 @@ export default function ProfileScreen() {
                 onChange={(event, date) => {
                   if (date) setSelectedSobrietyDate(date);
                 }}
-                maximumDate={new Date()}
+                maximumDate={maximumDate}
               />
               <View style={styles.modalButtons}>
                 <TouchableOpacity
