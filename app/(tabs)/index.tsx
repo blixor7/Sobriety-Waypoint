@@ -357,7 +357,7 @@ export default function HomeScreen() {
           <Text style={styles.actionTitle}>12 Steps</Text>
           <Text style={styles.actionSubtitle}>Learn & Reflect</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.actionCard} onPress={() => router.push('/manage-tasks')}>
+        <TouchableOpacity style={styles.actionCard} onPress={() => router.push('/tasks')}>
           <ClipboardList size={32} color={theme.primary} />
           <Text style={styles.actionTitle}>Manage Tasks</Text>
           <Text style={styles.actionSubtitle}>Guide Progress</Text>
