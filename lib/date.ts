@@ -128,9 +128,15 @@ export function formatDateWithTimezone(date: Date, timezone: string = DEVICE_TIM
  * ```
  */
 export function parseDateAsLocal(dateStr: string, timezone: string = DEVICE_TIMEZONE): Date {
-  // Create a TZDate at midnight in the specified timezone
-  // Note: TZDate extends Date, so it's compatible with Date interfaces
-  return new Date(new TZDate(`${dateStr}T00:00:00`, timezone).getTime());
+  // Parse date components from YYYY-MM-DD string
+  // Using explicit components avoids TZDate's string parsing which interprets
+  // strings without timezone suffix as local system time, not target timezone
+  const [year, month, day] = dateStr.split('-').map(Number);
+
+  // Create a TZDate at midnight in the specified timezone using explicit components
+  // TZDate constructor: (year, monthIndex, day, hours, minutes, seconds, timezone)
+  // Note: monthIndex is 0-based (January = 0)
+  return new Date(new TZDate(year, month - 1, day, 0, 0, 0, timezone).getTime());
 }
 
 /**
