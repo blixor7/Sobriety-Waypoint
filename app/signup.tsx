@@ -15,8 +15,17 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTheme, type ThemeColors } from '@/contexts/ThemeContext';
 import { Heart, ArrowLeft } from 'lucide-react-native';
 import { GoogleLogo } from '@/components/auth/SocialLogos';
+import { AppleSignInButton } from '@/components/auth/AppleSignInButton';
 import { logger, LogCategory } from '@/lib/logger';
 
+/**
+ * Renders the sign-up screen with fields and actions to create a new account.
+ *
+ * The screen validates email and password inputs, performs email/password sign-up,
+ * supports Google and Apple sign-in flows, and navigates to onboarding on successful account creation.
+ *
+ * @returns A React element representing the sign-up screen.
+ */
 export default function SignupScreen() {
   const { theme } = useTheme();
   const [email, setEmail] = useState('');
@@ -189,6 +198,15 @@ export default function SignupScreen() {
               {googleLoading ? 'Signing in with Google...' : 'Continue with Google'}
             </Text>
           </TouchableOpacity>
+
+          {/* Apple Sign In - only renders on iOS */}
+          <AppleSignInButton
+            onError={(error) => {
+              logger.error('Apple sign in failed', error, { category: LogCategory.AUTH });
+              // AppleSignInButton only renders on iOS, so Alert.alert is safe here
+              Alert.alert('Error', error.message);
+            }}
+          />
 
           <TouchableOpacity
             style={styles.loginLink}

@@ -15,8 +15,18 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTheme, type ThemeColors } from '@/contexts/ThemeContext';
 import { Heart } from 'lucide-react-native';
 import { GoogleLogo } from '@/components/auth/SocialLogos';
+import { AppleSignInButton } from '@/components/auth/AppleSignInButton';
 import { logger, LogCategory } from '@/lib/logger';
 
+/**
+ * Render the app's login screen and manage email/password, Google, and Apple sign-in flows.
+ *
+ * Renders inputs for email and password, primary sign-in and Google/Apple sign-in buttons,
+ * validation alerts for missing credentials, error alerts on sign-in failures, and a
+ * navigation control to the sign-up screen.
+ *
+ * @returns The login screen JSX with credential inputs, sign-in actions, and account creation navigation
+ */
 export default function LoginScreen() {
   const { theme } = useTheme();
   const [email, setEmail] = useState('');
@@ -144,6 +154,15 @@ export default function LoginScreen() {
               {googleLoading ? 'Signing in with Google...' : 'Continue with Google'}
             </Text>
           </TouchableOpacity>
+
+          {/* Apple Sign In - only renders on iOS */}
+          <AppleSignInButton
+            onError={(error) => {
+              logger.error('Apple sign in failed', error, { category: LogCategory.AUTH });
+              // AppleSignInButton only renders on iOS, so Alert.alert is safe here
+              Alert.alert('Error', error.message);
+            }}
+          />
 
           <TouchableOpacity
             style={styles.secondaryButton}
