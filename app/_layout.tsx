@@ -43,7 +43,7 @@ SplashScreen.preventAutoHideAsync();
  */
 function RootLayoutNav() {
   const { user, profile, loading } = useAuth();
-  const { isDark } = useTheme();
+  const { isDark, theme } = useTheme();
   const segments = useSegments();
   const router = useRouter();
   const navigationRef = useNavigationContainerRef();
@@ -113,6 +113,7 @@ function RootLayoutNav() {
           options={{
             presentation: 'formSheet',
             gestureEnabled: true,
+            contentStyle: { backgroundColor: theme.background },
           }}
         />
         <Stack.Screen name="+not-found" />

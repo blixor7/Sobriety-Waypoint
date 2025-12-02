@@ -13,6 +13,7 @@ import {
   Linking,
   ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, Stack } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -215,218 +216,220 @@ export default function SettingsScreen() {
   const styles = createStyles(theme);
 
   return (
-    <View style={styles.container}>
+    <View style={styles.outerContainer}>
       <Stack.Screen options={{ headerShown: false }} />
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-          accessibilityLabel="Close settings"
-          accessibilityRole="button"
-        >
-          <X size={24} color={theme.text} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Settings</Text>
-        <View style={{ width: 40 }} />
-      </View>
-
-      <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Appearance</Text>
-          <View style={styles.card}>
-            <View style={styles.themeOptions}>
-              <TouchableOpacity
-                style={[styles.themeOption, themeMode === 'light' && styles.themeOptionSelected]}
-                onPress={() => setThemeMode('light')}
-                accessibilityRole="radio"
-                accessibilityState={{ checked: themeMode === 'light' }}
-                accessibilityLabel="Light theme"
-              >
-                <Sun
-                  size={24}
-                  color={themeMode === 'light' ? theme.primary : theme.textSecondary}
-                />
-                <Text
-                  style={[
-                    styles.themeOptionText,
-                    themeMode === 'light' && styles.themeOptionTextSelected,
-                  ]}
-                >
-                  Light
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.themeOption, themeMode === 'dark' && styles.themeOptionSelected]}
-                onPress={() => setThemeMode('dark')}
-                accessibilityRole="radio"
-                accessibilityState={{ checked: themeMode === 'dark' }}
-                accessibilityLabel="Dark theme"
-              >
-                <Moon
-                  size={24}
-                  color={themeMode === 'dark' ? theme.primary : theme.textSecondary}
-                />
-                <Text
-                  style={[
-                    styles.themeOptionText,
-                    themeMode === 'dark' && styles.themeOptionTextSelected,
-                  ]}
-                >
-                  Dark
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.themeOption, themeMode === 'system' && styles.themeOptionSelected]}
-                onPress={() => setThemeMode('system')}
-                accessibilityRole="radio"
-                accessibilityState={{ checked: themeMode === 'system' }}
-                accessibilityLabel="System theme"
-              >
-                <Monitor
-                  size={24}
-                  color={themeMode === 'system' ? theme.primary : theme.textSecondary}
-                />
-                <Text
-                  style={[
-                    styles.themeOptionText,
-                    themeMode === 'system' && styles.themeOptionTextSelected,
-                  ]}
-                >
-                  System
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>About</Text>
-          <View style={styles.card}>
-            <TouchableOpacity
-              style={styles.menuItem}
-              onPress={() => handleOpenURL(EXTERNAL_LINKS.PRIVACY_POLICY)}
-              accessibilityRole="link"
-              accessibilityLabel="View Privacy Policy"
-            >
-              <View style={styles.menuItemLeft}>
-                <Shield size={20} color={theme.textSecondary} />
-                <Text style={styles.menuItemText}>Privacy Policy</Text>
-              </View>
-              <ChevronLeft
-                size={20}
-                color={theme.textTertiary}
-                style={{ transform: [{ rotate: '180deg' }] }}
-              />
-            </TouchableOpacity>
-            <View style={styles.separator} />
-            <TouchableOpacity
-              style={styles.menuItem}
-              onPress={() => handleOpenURL(EXTERNAL_LINKS.TERMS_OF_SERVICE)}
-              accessibilityRole="link"
-              accessibilityLabel="View Terms of Service"
-            >
-              <View style={styles.menuItemLeft}>
-                <FileText size={20} color={theme.textSecondary} />
-                <Text style={styles.menuItemText}>Terms of Service</Text>
-              </View>
-              <ChevronLeft
-                size={20}
-                color={theme.textTertiary}
-                style={{ transform: [{ rotate: '180deg' }] }}
-              />
-            </TouchableOpacity>
-            <View style={styles.separator} />
-            <TouchableOpacity
-              style={styles.menuItem}
-              onPress={() => handleOpenURL(EXTERNAL_LINKS.SOURCE_CODE)}
-              accessibilityRole="link"
-              accessibilityLabel="View source code on GitHub"
-            >
-              <View style={styles.menuItemLeft}>
-                <Github size={20} color={theme.textSecondary} />
-                <Text style={styles.menuItemText}>Source Code</Text>
-              </View>
-              <ChevronLeft
-                size={20}
-                color={theme.textTertiary}
-                style={{ transform: [{ rotate: '180deg' }] }}
-              />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        <View style={styles.section}>
+      <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+        <View style={styles.header}>
+          <View style={{ width: 44 }} />
+          <Text style={styles.headerTitle}>Settings</Text>
           <TouchableOpacity
-            style={styles.signOutButton}
-            onPress={handleSignOut}
+            style={styles.closeButton}
+            onPress={() => router.back()}
+            accessibilityLabel="Close settings"
             accessibilityRole="button"
-            accessibilityLabel="Sign out of your account"
           >
-            <LogOut size={20} color={theme.error} />
-            <Text style={styles.signOutText}>Sign Out</Text>
+            <X size={24} color={theme.text} />
           </TouchableOpacity>
         </View>
 
-        <View style={styles.section}>
-          <TouchableOpacity
-            style={[
-              styles.dangerZoneHeader,
-              isDangerZoneExpanded && styles.dangerZoneHeaderExpanded,
-            ]}
-            onPress={() => setIsDangerZoneExpanded(!isDangerZoneExpanded)}
-            accessibilityRole="button"
-            accessibilityState={{ expanded: isDangerZoneExpanded }}
-            accessibilityLabel="Danger Zone section"
-            accessibilityHint="Double tap to expand or collapse"
-          >
-            <View style={styles.dangerZoneHeaderLeft}>
-              <AlertTriangle size={18} color={theme.danger} />
-              <Text style={styles.dangerSectionTitle}>DANGER ZONE</Text>
+        <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Appearance</Text>
+            <View style={styles.card}>
+              <View style={styles.themeOptions}>
+                <TouchableOpacity
+                  style={[styles.themeOption, themeMode === 'light' && styles.themeOptionSelected]}
+                  onPress={() => setThemeMode('light')}
+                  accessibilityRole="radio"
+                  accessibilityState={{ checked: themeMode === 'light' }}
+                  accessibilityLabel="Light theme"
+                >
+                  <Sun
+                    size={24}
+                    color={themeMode === 'light' ? theme.primary : theme.textSecondary}
+                  />
+                  <Text
+                    style={[
+                      styles.themeOptionText,
+                      themeMode === 'light' && styles.themeOptionTextSelected,
+                    ]}
+                  >
+                    Light
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.themeOption, themeMode === 'dark' && styles.themeOptionSelected]}
+                  onPress={() => setThemeMode('dark')}
+                  accessibilityRole="radio"
+                  accessibilityState={{ checked: themeMode === 'dark' }}
+                  accessibilityLabel="Dark theme"
+                >
+                  <Moon
+                    size={24}
+                    color={themeMode === 'dark' ? theme.primary : theme.textSecondary}
+                  />
+                  <Text
+                    style={[
+                      styles.themeOptionText,
+                      themeMode === 'dark' && styles.themeOptionTextSelected,
+                    ]}
+                  >
+                    Dark
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.themeOption, themeMode === 'system' && styles.themeOptionSelected]}
+                  onPress={() => setThemeMode('system')}
+                  accessibilityRole="radio"
+                  accessibilityState={{ checked: themeMode === 'system' }}
+                  accessibilityLabel="System theme"
+                >
+                  <Monitor
+                    size={24}
+                    color={themeMode === 'system' ? theme.primary : theme.textSecondary}
+                  />
+                  <Text
+                    style={[
+                      styles.themeOptionText,
+                      themeMode === 'system' && styles.themeOptionTextSelected,
+                    ]}
+                  >
+                    System
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
-            {isDangerZoneExpanded ? (
-              <ChevronUp size={20} color={theme.danger} />
-            ) : (
-              <ChevronDown size={20} color={theme.danger} />
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>About</Text>
+            <View style={styles.card}>
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={() => handleOpenURL(EXTERNAL_LINKS.PRIVACY_POLICY)}
+                accessibilityRole="link"
+                accessibilityLabel="View Privacy Policy"
+              >
+                <View style={styles.menuItemLeft}>
+                  <Shield size={20} color={theme.textSecondary} />
+                  <Text style={styles.menuItemText}>Privacy Policy</Text>
+                </View>
+                <ChevronLeft
+                  size={20}
+                  color={theme.textTertiary}
+                  style={{ transform: [{ rotate: '180deg' }] }}
+                />
+              </TouchableOpacity>
+              <View style={styles.separator} />
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={() => handleOpenURL(EXTERNAL_LINKS.TERMS_OF_SERVICE)}
+                accessibilityRole="link"
+                accessibilityLabel="View Terms of Service"
+              >
+                <View style={styles.menuItemLeft}>
+                  <FileText size={20} color={theme.textSecondary} />
+                  <Text style={styles.menuItemText}>Terms of Service</Text>
+                </View>
+                <ChevronLeft
+                  size={20}
+                  color={theme.textTertiary}
+                  style={{ transform: [{ rotate: '180deg' }] }}
+                />
+              </TouchableOpacity>
+              <View style={styles.separator} />
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={() => handleOpenURL(EXTERNAL_LINKS.SOURCE_CODE)}
+                accessibilityRole="link"
+                accessibilityLabel="View source code on GitHub"
+              >
+                <View style={styles.menuItemLeft}>
+                  <Github size={20} color={theme.textSecondary} />
+                  <Text style={styles.menuItemText}>Source Code</Text>
+                </View>
+                <ChevronLeft
+                  size={20}
+                  color={theme.textTertiary}
+                  style={{ transform: [{ rotate: '180deg' }] }}
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <View style={styles.section}>
+            <TouchableOpacity
+              style={styles.signOutButton}
+              onPress={handleSignOut}
+              accessibilityRole="button"
+              accessibilityLabel="Sign out of your account"
+            >
+              <LogOut size={20} color={theme.error} />
+              <Text style={styles.signOutText}>Sign Out</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.section}>
+            <TouchableOpacity
+              style={[
+                styles.dangerZoneHeader,
+                isDangerZoneExpanded && styles.dangerZoneHeaderExpanded,
+              ]}
+              onPress={() => setIsDangerZoneExpanded(!isDangerZoneExpanded)}
+              accessibilityRole="button"
+              accessibilityState={{ expanded: isDangerZoneExpanded }}
+              accessibilityLabel="Danger Zone section"
+              accessibilityHint="Double tap to expand or collapse"
+            >
+              <View style={styles.dangerZoneHeaderLeft}>
+                <AlertTriangle size={18} color={theme.danger} />
+                <Text style={styles.dangerSectionTitle}>DANGER ZONE</Text>
+              </View>
+              {isDangerZoneExpanded ? (
+                <ChevronUp size={20} color={theme.danger} />
+              ) : (
+                <ChevronDown size={20} color={theme.danger} />
+              )}
+            </TouchableOpacity>
+            {isDangerZoneExpanded && (
+              <View style={styles.dangerCard}>
+                <Text style={styles.dangerDescription}>
+                  Permanently delete your account and all associated data. This action cannot be
+                  undone.
+                </Text>
+                <TouchableOpacity
+                  style={[styles.deleteAccountButton, isDeleting && styles.buttonDisabled]}
+                  onPress={handleDeleteAccount}
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? (
+                    <ActivityIndicator size="small" color={theme.white} />
+                  ) : (
+                    <>
+                      <Trash2 size={20} color={theme.white} />
+                      <Text style={styles.deleteAccountText}>Delete Account</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </View>
             )}
-          </TouchableOpacity>
-          {isDangerZoneExpanded && (
-            <View style={styles.dangerCard}>
-              <Text style={styles.dangerDescription}>
-                Permanently delete your account and all associated data. This action cannot be
-                undone.
-              </Text>
-              <TouchableOpacity
-                style={[styles.deleteAccountButton, isDeleting && styles.buttonDisabled]}
-                onPress={handleDeleteAccount}
-                disabled={isDeleting}
-              >
-                {isDeleting ? (
-                  <ActivityIndicator size="small" color={theme.white} />
-                ) : (
-                  <>
-                    <Trash2 size={20} color={theme.white} />
-                    <Text style={styles.deleteAccountText}>Delete Account</Text>
-                  </>
-                )}
-              </TouchableOpacity>
-            </View>
-          )}
-        </View>
+          </View>
 
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>Sobriety Waypoint v{packageJson.version}</Text>
-          <Text style={styles.footerSubtext}>Supporting recovery, one day at a time</Text>
-          <TouchableOpacity
-            onPress={() => handleOpenURL(EXTERNAL_LINKS.DEVELOPER)}
-            accessibilityRole="link"
-            accessibilityLabel="Visit developer website"
-          >
-            <Text style={styles.footerCredit}>By Bill Chirico</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>Sobriety Waypoint v{packageJson.version}</Text>
+            <Text style={styles.footerSubtext}>Supporting recovery, one day at a time</Text>
+            <TouchableOpacity
+              onPress={() => handleOpenURL(EXTERNAL_LINKS.DEVELOPER)}
+              accessibilityRole="link"
+              accessibilityLabel="Visit developer website"
+            >
+              <Text style={styles.footerCredit}>By Bill Chirico</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
     </View>
   );
 }
@@ -442,25 +445,29 @@ export default function SettingsScreen() {
  */
 const createStyles = (theme: ReturnType<typeof useTheme>['theme']) =>
   StyleSheet.create({
-    container: {
+    outerContainer: {
       flex: 1,
       backgroundColor: theme.background,
+    },
+    container: {
+      flex: 1,
     },
     header: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
       paddingHorizontal: 16,
-      paddingTop: Platform.OS === 'android' ? 40 : 60,
-      paddingBottom: 16,
+      paddingVertical: 12,
       backgroundColor: theme.surface,
       borderBottomWidth: 1,
       borderBottomColor: theme.borderLight,
     },
-    backButton: {
-      padding: 8,
+    closeButton: {
+      padding: 10,
       borderRadius: 20,
-      backgroundColor: theme.card,
+      backgroundColor: theme.background,
+      borderWidth: 1,
+      borderColor: theme.borderLight,
     },
     headerTitle: {
       fontSize: 18,
@@ -468,7 +475,12 @@ const createStyles = (theme: ReturnType<typeof useTheme>['theme']) =>
       fontWeight: '600',
       color: theme.text,
     },
+    scrollView: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
     content: {
+      flexGrow: 1,
       padding: 20,
     },
     section: {
@@ -496,8 +508,8 @@ const createStyles = (theme: ReturnType<typeof useTheme>['theme']) =>
     },
     themeOptions: {
       flexDirection: 'row',
-      padding: 8,
-      gap: 8,
+      padding: 12,
+      gap: 10,
     },
     themeOption: {
       flex: 1,
@@ -505,9 +517,9 @@ const createStyles = (theme: ReturnType<typeof useTheme>['theme']) =>
       justifyContent: 'center',
       padding: 16,
       borderRadius: 12,
-      backgroundColor: theme.background,
+      backgroundColor: theme.card,
       borderWidth: 2,
-      borderColor: 'transparent',
+      borderColor: theme.card,
     },
     themeOptionSelected: {
       borderColor: theme.primary,
