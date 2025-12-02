@@ -227,7 +227,7 @@ export default function StepsScreen() {
                 styles.completeButton,
                 selectedStep && progress[selectedStep.step_number] && styles.completeButtonActive,
               ]}
-              onPress={() => toggleStepCompletion(selectedStep!.step_number)}
+              onPress={() => selectedStep && toggleStepCompletion(selectedStep.step_number)}
             >
               {selectedStep && progress[selectedStep.step_number] ? (
                 <>
