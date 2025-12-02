@@ -196,7 +196,26 @@ export default function StepsScreen() {
             <Text style={styles.modalTitle}>{selectedStep?.title}</Text>
             <Text style={styles.modalDescription}>{selectedStep?.description}</Text>
 
-            {selectedStep && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Understanding This Step</Text>
+              <Text style={styles.sectionContent}>{selectedStep?.detailed_content}</Text>
+            </View>
+
+            {selectedStep?.reflection_prompts && selectedStep.reflection_prompts.length > 0 && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Reflection Questions</Text>
+                {selectedStep.reflection_prompts.map((prompt, index) => (
+                  <View key={index} style={styles.promptItem}>
+                    <Text style={styles.promptBullet}>•</Text>
+                    <Text style={styles.promptText}>{prompt}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+          </ScrollView>
+
+          {selectedStep && (
+            <View style={styles.modalFooter}>
               <TouchableOpacity
                 style={[
                   styles.completeButton,
@@ -218,25 +237,8 @@ export default function StepsScreen() {
                   </>
                 )}
               </TouchableOpacity>
-            )}
-
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Understanding This Step</Text>
-              <Text style={styles.sectionContent}>{selectedStep?.detailed_content}</Text>
             </View>
-
-            {selectedStep?.reflection_prompts && selectedStep.reflection_prompts.length > 0 && (
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Reflection Questions</Text>
-                {selectedStep.reflection_prompts.map((prompt, index) => (
-                  <View key={index} style={styles.promptItem}>
-                    <Text style={styles.promptBullet}>•</Text>
-                    <Text style={styles.promptText}>{prompt}</Text>
-                  </View>
-                ))}
-              </View>
-            )}
-          </ScrollView>
+          )}
         </View>
       </Modal>
     </View>
@@ -448,6 +450,12 @@ const createStyles = (theme: ThemeColors) =>
       color: '#10b981',
       fontWeight: '600',
     },
+    modalFooter: {
+      padding: 20,
+      borderTopWidth: 1,
+      borderTopColor: theme.border,
+      backgroundColor: theme.card,
+    },
     completeButton: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -456,8 +464,6 @@ const createStyles = (theme: ThemeColors) =>
       paddingVertical: 14,
       paddingHorizontal: 20,
       borderRadius: 12,
-      marginTop: 16,
-      marginBottom: 24,
       gap: 8,
     },
     completeButtonActive: {
