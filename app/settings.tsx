@@ -1,7 +1,7 @@
 // =============================================================================
 // Imports
 // =============================================================================
-import React, { useState } from 'react';
+import React, { useState, useMemo, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -12,8 +12,10 @@ import {
   Platform,
   Linking,
   ActivityIndicator,
+  LayoutAnimation,
+  UIManager,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, Stack } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -35,10 +37,163 @@ import {
   CheckCircle,
   Download,
   AlertCircle,
+  Info,
+  Copy,
 } from 'lucide-react-native';
+import * as Clipboard from 'expo-clipboard';
+import Constants from 'expo-constants';
+import * as Updates from 'expo-updates';
+import * as Device from 'expo-device';
+import * as Application from 'expo-application';
 import { useAppUpdates } from '@/hooks/useAppUpdates';
 import { logger, LogCategory } from '@/lib/logger';
 import packageJson from '../package.json';
+
+// Enable LayoutAnimation on Android
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
+// =============================================================================
+// Types
+// =============================================================================
+/**
+ * Comprehensive build and runtime information for debugging.
+ * Combines EAS Build env vars, expo-updates, expo-device, and expo-application data.
+ */
+interface BuildInfo {
+  // EAS Build info (baked at build time via app.config.ts)
+  /** Unique EAS Build ID (UUID format) */
+  easBuildId: string | null;
+  /** Build profile name (e.g., 'production', 'preview', 'development') */
+  easBuildProfile: string | null;
+  /** Git commit hash at build time */
+  easBuildGitCommitHash: string | null;
+  /** Build runner type ('eas-build' for cloud, 'local-build-plugin' for local) */
+  easBuildRunner: string | null;
+
+  // OTA Update info (from expo-updates)
+  /** Current OTA update channel */
+  updateChannel: string | null;
+  /** Current running update ID (UUID) */
+  updateId: string | null;
+  /** Runtime version for update compatibility */
+  runtimeVersion: string | null;
+  /** Whether running the embedded bundle (not an OTA update) */
+  isEmbeddedLaunch: boolean;
+
+  // Device info (from expo-device)
+  /** Device model name (e.g., "iPhone 15 Pro", "Pixel 8") */
+  deviceModel: string | null;
+  /** Operating system name */
+  osName: string | null;
+  /** Operating system version */
+  osVersion: string | null;
+
+  // Application info (from expo-application)
+  /** Native build number (increments with each store submission) */
+  nativeBuildVersion: string | null;
+  /** App version shown in app stores */
+  nativeAppVersion: string | null;
+}
+
+// =============================================================================
+// Helper Functions
+// =============================================================================
+/**
+ * Safely extracts a string value from config, returning null if not a valid string.
+ */
+function getStringOrNull(value: unknown): string | null {
+  if (typeof value === 'string' && value.length > 0) {
+    return value;
+  }
+  return null;
+}
+
+/**
+ * Retrieves comprehensive build information from multiple Expo APIs.
+ * Combines EAS Build env vars, expo-updates, expo-device, and expo-application.
+ *
+ * @returns BuildInfo object with full debugging details (null values indicate local dev)
+ */
+function getBuildInfo(): BuildInfo {
+  const extra = Constants.expoConfig?.extra;
+
+  return {
+    // EAS Build info (from app.config.ts extra field)
+    easBuildId: getStringOrNull(extra?.easBuildId),
+    easBuildProfile: getStringOrNull(extra?.easBuildProfile),
+    easBuildGitCommitHash: getStringOrNull(extra?.easBuildGitCommitHash),
+    easBuildRunner: getStringOrNull(extra?.easBuildRunner),
+
+    // OTA Update info (from expo-updates)
+    updateChannel: getStringOrNull(Updates.channel),
+    updateId: getStringOrNull(Updates.updateId),
+    runtimeVersion: getStringOrNull(Updates.runtimeVersion),
+    isEmbeddedLaunch: Updates.isEmbeddedLaunch,
+
+    // Device info (from expo-device)
+    deviceModel: getStringOrNull(Device.modelName),
+    osName: getStringOrNull(Device.osName),
+    osVersion: getStringOrNull(Device.osVersion),
+
+    // Application info (from expo-application)
+    nativeBuildVersion: getStringOrNull(Application.nativeBuildVersion),
+    nativeAppVersion: getStringOrNull(Application.nativeApplicationVersion),
+  };
+}
+
+/**
+ * Formats all build information as a copyable string for debugging/support.
+ *
+ * @param buildInfo - The build info object to format
+ * @returns Formatted string with all build details
+ */
+function formatBuildInfoForCopy(buildInfo: BuildInfo): string {
+  const lines: string[] = [
+    '=== Sobriety Waypoint Build Info ===',
+    '',
+    `App Version: ${buildInfo.nativeAppVersion ?? packageJson.version}${buildInfo.nativeBuildVersion ? ` (${buildInfo.nativeBuildVersion})` : ''}`,
+    `Device: ${buildInfo.deviceModel ?? Platform.OS}`,
+    `OS: ${buildInfo.osName ?? Platform.OS} ${buildInfo.osVersion ?? Platform.Version}`,
+    '',
+  ];
+
+  if (buildInfo.runtimeVersion) {
+    lines.push(`Runtime Version: ${buildInfo.runtimeVersion}`);
+  }
+  if (buildInfo.updateChannel) {
+    lines.push(`Update Channel: ${buildInfo.updateChannel}`);
+  }
+  if (buildInfo.updateId) {
+    lines.push(`Update ID: ${buildInfo.updateId}`);
+  }
+  lines.push(`Bundle Type: ${buildInfo.isEmbeddedLaunch ? 'Embedded' : 'OTA Update'}`);
+  lines.push('');
+
+  lines.push(`Build Profile: ${buildInfo.easBuildProfile ?? 'Development'}`);
+  lines.push(
+    `Build Runner: ${
+      buildInfo.easBuildRunner === 'eas-build'
+        ? 'EAS Cloud'
+        : buildInfo.easBuildRunner === 'local-build-plugin'
+          ? 'Local'
+          : 'Development'
+    }`
+  );
+
+  if (buildInfo.easBuildGitCommitHash) {
+    lines.push(`Git Commit: ${buildInfo.easBuildGitCommitHash}`);
+  }
+  if (buildInfo.easBuildId) {
+    lines.push(`EAS Build ID: ${buildInfo.easBuildId}`);
+  }
+
+  lines.push('');
+  lines.push(`Generated: ${new Date().toISOString()}`);
+
+  return lines.join('\n');
+}
 
 // =============================================================================
 // Constants
@@ -83,6 +238,9 @@ export default function SettingsScreen() {
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDangerZoneExpanded, setIsDangerZoneExpanded] = useState(false);
+  const [isBuildInfoExpanded, setIsBuildInfoExpanded] = useState(false);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
+  const buildInfo = getBuildInfo();
   const {
     status: updateStatus,
     isChecking,
@@ -92,6 +250,21 @@ export default function SettingsScreen() {
     applyUpdate,
     isSupported: updatesSupported,
   } = useAppUpdates();
+  const insets = useSafeAreaInsets();
+
+  // Scroll position management for expand/collapse
+  const scrollViewRef = useRef<ScrollView>(null);
+  const scrollPositionRef = useRef(0);
+
+  const toggleBuildInfo = useCallback(() => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setIsBuildInfoExpanded((prev) => !prev);
+  }, []);
+
+  const toggleDangerZone = useCallback(() => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setIsDangerZoneExpanded((prev) => !prev);
+  }, []);
 
   /**
    * Handles user sign out with platform-specific confirmations.
@@ -218,6 +391,28 @@ export default function SettingsScreen() {
   };
 
   /**
+   * Copies text to clipboard and shows brief feedback.
+   * Uses platform-appropriate clipboard API.
+   */
+  const copyToClipboard = async (text: string, fieldName: string) => {
+    try {
+      if (Platform.OS === 'web') {
+        await navigator.clipboard.writeText(text);
+      } else {
+        await Clipboard.setStringAsync(text);
+      }
+      setCopiedField(fieldName);
+      setTimeout(() => setCopiedField(null), 2000);
+    } catch (error: unknown) {
+      const err = error instanceof Error ? error : new Error('Failed to copy');
+      logger.error('Failed to copy to clipboard', err, {
+        category: LogCategory.UI,
+        fieldName,
+      });
+    }
+  };
+
+  /**
    * Safely opens an external URL with error handling.
    * Logs errors to Sentry if the URL fails to open.
    */
@@ -233,12 +428,12 @@ export default function SettingsScreen() {
     }
   };
 
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   return (
     <View style={styles.outerContainer}>
       <Stack.Screen options={{ headerShown: false }} />
-      <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+      <View style={[styles.container, { paddingTop: insets.top }]}>
         <View style={styles.header}>
           <View style={styles.headerSpacer} accessibilityElementsHidden={true} />
           <Text style={styles.headerTitle}>Settings</Text>
@@ -252,7 +447,17 @@ export default function SettingsScreen() {
           </TouchableOpacity>
         </View>
 
-        <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 8 }]}
+          keyboardShouldPersistTaps="handled"
+          removeClippedSubviews={false}
+          scrollEventThrottle={16}
+          onScroll={(e) => {
+            scrollPositionRef.current = e.nativeEvent.contentOffset.y;
+          }}
+        >
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Appearance</Text>
             <View style={styles.card}>
@@ -478,7 +683,7 @@ export default function SettingsScreen() {
                 styles.dangerZoneHeader,
                 isDangerZoneExpanded && styles.dangerZoneHeaderExpanded,
               ]}
-              onPress={() => setIsDangerZoneExpanded(!isDangerZoneExpanded)}
+              onPress={toggleDangerZone}
               accessibilityRole="button"
               accessibilityState={{ expanded: isDangerZoneExpanded }}
               accessibilityLabel="Danger Zone section"
@@ -494,7 +699,7 @@ export default function SettingsScreen() {
                 <ChevronDown size={20} color={theme.danger} />
               )}
             </TouchableOpacity>
-            {isDangerZoneExpanded && (
+            <View style={{ maxHeight: isDangerZoneExpanded ? undefined : 0, overflow: 'hidden' }}>
               <View style={styles.dangerCard}>
                 <Text style={styles.dangerDescription}>
                   Permanently delete your account and all associated data. This action cannot be
@@ -518,7 +723,211 @@ export default function SettingsScreen() {
                   )}
                 </TouchableOpacity>
               </View>
-            )}
+            </View>
+          </View>
+
+          <View style={styles.section}>
+            <TouchableOpacity
+              style={[
+                styles.buildInfoHeader,
+                isBuildInfoExpanded && styles.buildInfoHeaderExpanded,
+              ]}
+              onPress={toggleBuildInfo}
+              accessibilityRole="button"
+              accessibilityState={{ expanded: isBuildInfoExpanded }}
+              accessibilityLabel="Build Information section"
+              accessibilityHint="Double tap to expand or collapse"
+            >
+              <View style={styles.buildInfoHeaderLeft}>
+                <Info size={18} color={theme.primary} />
+                <Text style={styles.buildInfoSectionTitle}>BUILD INFO</Text>
+              </View>
+              {isBuildInfoExpanded ? (
+                <ChevronUp size={20} color={theme.primary} />
+              ) : (
+                <ChevronDown size={20} color={theme.primary} />
+              )}
+            </TouchableOpacity>
+            <View style={{ maxHeight: isBuildInfoExpanded ? undefined : 0, overflow: 'hidden' }}>
+              <View style={styles.buildInfoCard}>
+                {/* App Version & Build Number */}
+                <View style={styles.buildInfoRow}>
+                  <Text style={styles.buildInfoLabel}>App Version</Text>
+                  <Text style={styles.buildInfoValue}>
+                    {buildInfo.nativeAppVersion ?? packageJson.version}
+                    {buildInfo.nativeBuildVersion ? ` (${buildInfo.nativeBuildVersion})` : ''}
+                  </Text>
+                </View>
+                <View style={styles.buildInfoSeparator} />
+
+                {/* Device Info */}
+                <View style={styles.buildInfoRow}>
+                  <Text style={styles.buildInfoLabel}>Device</Text>
+                  <Text style={styles.buildInfoValue}>{buildInfo.deviceModel ?? Platform.OS}</Text>
+                </View>
+                <View style={styles.buildInfoSeparator} />
+                <View style={styles.buildInfoRow}>
+                  <Text style={styles.buildInfoLabel}>OS</Text>
+                  <Text style={styles.buildInfoValue}>
+                    {buildInfo.osName ?? Platform.OS} {buildInfo.osVersion ?? Platform.Version}
+                  </Text>
+                </View>
+                <View style={styles.buildInfoSeparator} />
+
+                {/* Runtime Version */}
+                {buildInfo.runtimeVersion != null && (
+                  <>
+                    <View style={styles.buildInfoRow}>
+                      <Text style={styles.buildInfoLabel}>Runtime</Text>
+                      <Text style={styles.buildInfoValue}>{buildInfo.runtimeVersion}</Text>
+                    </View>
+                    <View style={styles.buildInfoSeparator} />
+                  </>
+                )}
+
+                {/* Update Channel & ID */}
+                {buildInfo.updateChannel != null && (
+                  <>
+                    <View style={styles.buildInfoRow}>
+                      <Text style={styles.buildInfoLabel}>Channel</Text>
+                      <Text style={styles.buildInfoValue}>{buildInfo.updateChannel}</Text>
+                    </View>
+                    <View style={styles.buildInfoSeparator} />
+                  </>
+                )}
+                {buildInfo.updateId != null && (
+                  <>
+                    <TouchableOpacity
+                      style={styles.buildInfoRow}
+                      onPress={() => copyToClipboard(buildInfo.updateId ?? '', 'updateId')}
+                      accessibilityRole="button"
+                      accessibilityLabel="Copy update ID"
+                    >
+                      <Text style={styles.buildInfoLabel}>Update ID</Text>
+                      <View style={styles.buildInfoCopyRow}>
+                        <Text style={styles.buildInfoValueMono}>
+                          {buildInfo.updateId.slice(0, 8)}...
+                        </Text>
+                        {copiedField === 'updateId' ? (
+                          <CheckCircle size={14} color={theme.success} />
+                        ) : (
+                          <Copy size={14} color={theme.textTertiary} />
+                        )}
+                      </View>
+                    </TouchableOpacity>
+                    <View style={styles.buildInfoSeparator} />
+                  </>
+                )}
+
+                {/* Build Profile & Runner */}
+                <View style={styles.buildInfoRow}>
+                  <Text style={styles.buildInfoLabel}>Build Profile</Text>
+                  <Text style={styles.buildInfoValue}>
+                    {buildInfo.easBuildProfile ?? 'Development'}
+                  </Text>
+                </View>
+                <View style={styles.buildInfoSeparator} />
+                <View style={styles.buildInfoRow}>
+                  <Text style={styles.buildInfoLabel}>Build Runner</Text>
+                  <Text style={styles.buildInfoValue}>
+                    {buildInfo.easBuildRunner === 'eas-build'
+                      ? 'EAS Cloud'
+                      : buildInfo.easBuildRunner === 'local-build-plugin'
+                        ? 'Local'
+                        : 'Development'}
+                  </Text>
+                </View>
+
+                {/* Git Commit */}
+                {buildInfo.easBuildGitCommitHash != null && (
+                  <>
+                    <View style={styles.buildInfoSeparator} />
+                    <TouchableOpacity
+                      style={styles.buildInfoRow}
+                      onPress={() =>
+                        copyToClipboard(buildInfo.easBuildGitCommitHash ?? '', 'commit')
+                      }
+                      accessibilityRole="button"
+                      accessibilityLabel="Copy commit hash"
+                    >
+                      <Text style={styles.buildInfoLabel}>Commit</Text>
+                      <View style={styles.buildInfoCopyRow}>
+                        <Text style={styles.buildInfoValueMono}>
+                          {buildInfo.easBuildGitCommitHash.slice(0, 7)}
+                        </Text>
+                        {copiedField === 'commit' ? (
+                          <CheckCircle size={14} color={theme.success} />
+                        ) : (
+                          <Copy size={14} color={theme.textTertiary} />
+                        )}
+                      </View>
+                    </TouchableOpacity>
+                  </>
+                )}
+
+                {/* EAS Build ID */}
+                {buildInfo.easBuildId != null && (
+                  <>
+                    <View style={styles.buildInfoSeparator} />
+                    <TouchableOpacity
+                      style={styles.buildInfoRow}
+                      onPress={() => copyToClipboard(buildInfo.easBuildId ?? '', 'buildId')}
+                      accessibilityRole="button"
+                      accessibilityLabel="Copy build ID"
+                    >
+                      <Text style={styles.buildInfoLabel}>EAS Build ID</Text>
+                      <View style={styles.buildInfoCopyRow}>
+                        <Text style={styles.buildInfoValueMono}>
+                          {buildInfo.easBuildId.slice(0, 8)}...
+                        </Text>
+                        {copiedField === 'buildId' ? (
+                          <CheckCircle size={14} color={theme.success} />
+                        ) : (
+                          <Copy size={14} color={theme.textTertiary} />
+                        )}
+                      </View>
+                    </TouchableOpacity>
+                  </>
+                )}
+
+                {/* OTA vs Embedded indicator */}
+                <View style={styles.buildInfoSeparator} />
+                <View style={styles.buildInfoRow}>
+                  <Text style={styles.buildInfoLabel}>Bundle</Text>
+                  <Text style={styles.buildInfoValue}>
+                    {buildInfo.isEmbeddedLaunch ? 'Embedded' : 'OTA Update'}
+                  </Text>
+                </View>
+
+                {/* Development mode note */}
+                {!buildInfo.easBuildId && !buildInfo.easBuildProfile && (
+                  <Text style={styles.buildInfoNote}>
+                    Running in development mode. Full build details available in production.
+                  </Text>
+                )}
+
+                {/* Copy All Button */}
+                <View style={styles.buildInfoSeparator} />
+                <TouchableOpacity
+                  style={styles.copyAllButton}
+                  onPress={() => copyToClipboard(formatBuildInfoForCopy(buildInfo), 'all')}
+                  accessibilityRole="button"
+                  accessibilityLabel="Copy all build information to clipboard"
+                >
+                  {copiedField === 'all' ? (
+                    <>
+                      <CheckCircle size={16} color={theme.success} />
+                      <Text style={[styles.copyAllText, { color: theme.success }]}>Copied!</Text>
+                    </>
+                  ) : (
+                    <>
+                      <Copy size={16} color={theme.primary} />
+                      <Text style={styles.copyAllText}>Copy All Build Info</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
 
           <View style={styles.footer}>
@@ -533,7 +942,7 @@ export default function SettingsScreen() {
             </TouchableOpacity>
           </View>
         </ScrollView>
-      </SafeAreaView>
+      </View>
     </View>
   );
 }
@@ -583,7 +992,6 @@ const createStyles = (theme: ReturnType<typeof useTheme>['theme']) =>
       backgroundColor: theme.background,
     },
     content: {
-      flexGrow: 1,
       padding: 20,
     },
     section: {
@@ -834,5 +1242,100 @@ const createStyles = (theme: ReturnType<typeof useTheme>['theme']) =>
       fontFamily: theme.fontRegular,
       fontWeight: '600',
       color: theme.white,
+    },
+    buildInfoHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      backgroundColor: theme.primaryLight,
+      borderRadius: 16,
+      padding: 16,
+      borderWidth: 1,
+      borderColor: theme.primary + '30',
+    },
+    buildInfoHeaderExpanded: {
+      borderBottomLeftRadius: 0,
+      borderBottomRightRadius: 0,
+    },
+    buildInfoHeaderLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+    },
+    buildInfoSectionTitle: {
+      fontSize: 14,
+      fontFamily: theme.fontRegular,
+      fontWeight: '600',
+      color: theme.primary,
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+    },
+    buildInfoCard: {
+      backgroundColor: theme.card,
+      borderBottomLeftRadius: 16,
+      borderBottomRightRadius: 16,
+      borderTopLeftRadius: 0,
+      borderTopRightRadius: 0,
+      padding: 16,
+      paddingTop: 12,
+      borderWidth: 1,
+      borderTopWidth: 0,
+      borderColor: theme.borderLight,
+      marginTop: -1,
+    },
+    buildInfoRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingVertical: 8,
+    },
+    buildInfoLabel: {
+      fontSize: 14,
+      fontFamily: theme.fontRegular,
+      color: theme.textSecondary,
+    },
+    buildInfoValue: {
+      fontSize: 14,
+      fontFamily: theme.fontRegular,
+      fontWeight: '500',
+      color: theme.text,
+    },
+    buildInfoValueMono: {
+      fontSize: 13,
+      fontFamily: 'JetBrainsMono-Regular',
+      color: theme.text,
+    },
+    buildInfoCopyRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    buildInfoSeparator: {
+      height: 1,
+      backgroundColor: theme.borderLight,
+    },
+    buildInfoNote: {
+      fontSize: 12,
+      fontFamily: theme.fontRegular,
+      color: theme.textTertiary,
+      fontStyle: 'italic',
+      textAlign: 'center',
+      marginTop: 8,
+    },
+    copyAllButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+      paddingVertical: 12,
+      marginTop: 8,
+      backgroundColor: theme.primaryLight,
+      borderRadius: 8,
+    },
+    copyAllText: {
+      fontSize: 14,
+      fontFamily: theme.fontRegular,
+      fontWeight: '600',
+      color: theme.primary,
     },
   });
