@@ -85,9 +85,18 @@ jest.mock('@/contexts/ThemeContext', () => ({
 // Mock AuthContext
 const mockProfile = {
   id: 'sponsor-123',
+  email: 'john.d@example.com',
   first_name: 'John',
   last_initial: 'D',
   sobriety_date: '2024-01-01',
+  notification_preferences: {
+    tasks: true,
+    messages: true,
+    milestones: true,
+    daily: false,
+  },
+  created_at: '2024-01-01T00:00:00Z',
+  updated_at: '2024-01-01T00:00:00Z',
 };
 
 jest.mock('@/contexts/AuthContext', () => ({
