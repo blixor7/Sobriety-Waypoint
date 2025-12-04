@@ -3,7 +3,7 @@
 // =============================================================================
 import React from 'react';
 import { View, Text, StyleSheet, useWindowDimensions, Platform } from 'react-native';
-import { useTheme } from '@/contexts/ThemeContext';
+import { useTheme, ThemeColors } from '@/contexts/ThemeContext';
 
 // =============================================================================
 // Types
@@ -69,13 +69,7 @@ export default function TestimonialsSection() {
 
         <View style={styles.testimonialsGrid}>
           {testimonials.map((testimonial, index) => (
-            <TestimonialCard
-              key={index}
-              testimonial={testimonial}
-              index={index}
-              theme={theme}
-              width={width}
-            />
+            <TestimonialCard key={index} testimonial={testimonial} theme={theme} width={width} />
           ))}
         </View>
 
@@ -96,12 +90,11 @@ export default function TestimonialsSection() {
 
 interface TestimonialCardProps {
   testimonial: Testimonial;
-  index: number;
-  theme: any;
+  theme: ThemeColors;
   width: number;
 }
 
-function TestimonialCard({ testimonial, index, theme, width }: TestimonialCardProps) {
+function TestimonialCard({ testimonial, theme, width }: TestimonialCardProps) {
   const styles = createCardStyles(theme, width);
 
   return (
@@ -122,7 +115,7 @@ function TestimonialCard({ testimonial, index, theme, width }: TestimonialCardPr
 interface StatItemProps {
   value: string;
   label: string;
-  theme: any;
+  theme: ThemeColors;
   width: number;
 }
 
@@ -162,7 +155,7 @@ function StatItem({ value, label, theme, width }: StatItemProps) {
 // Styles
 // =============================================================================
 
-const createStyles = (theme: any, width: number) => {
+const createStyles = (theme: ThemeColors, width: number) => {
   const isMobile = width < 768;
   const isTablet = width >= 768 && width < 1024;
 
@@ -211,7 +204,7 @@ const createStyles = (theme: any, width: number) => {
   });
 };
 
-const createCardStyles = (theme: any, width: number) => {
+const createCardStyles = (theme: ThemeColors, width: number) => {
   const isMobile = width < 768;
 
   return StyleSheet.create({

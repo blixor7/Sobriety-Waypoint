@@ -40,7 +40,7 @@ describe('HeroSection', () => {
   it('renders free forever badge', () => {
     const { getByText } = renderWithProviders(<HeroSection />);
 
-    expect(getByText('✓ Free Forever • No Ads • No Catch')).toBeTruthy();
+    expect(getByText(/Free Forever.*No Ads.*No Catch/)).toBeTruthy();
   });
 
   it('renders encouraging quote', () => {

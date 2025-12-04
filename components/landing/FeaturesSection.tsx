@@ -3,7 +3,7 @@
 // =============================================================================
 import React from 'react';
 import { View, Text, StyleSheet, useWindowDimensions, Platform } from 'react-native';
-import { useTheme } from '@/contexts/ThemeContext';
+import { useTheme, ThemeColors } from '@/contexts/ThemeContext';
 import { Calendar, Users, CheckSquare, Award } from 'lucide-react-native';
 
 // =============================================================================
@@ -78,7 +78,7 @@ export default function FeaturesSection() {
 
         <View style={styles.featuresGrid}>
           {features.map((feature, index) => (
-            <FeatureCard key={index} feature={feature} index={index} theme={theme} width={width} />
+            <FeatureCard key={index} feature={feature} theme={theme} width={width} />
           ))}
         </View>
       </View>
@@ -92,12 +92,11 @@ export default function FeaturesSection() {
 
 interface FeatureCardProps {
   feature: Feature;
-  index: number;
-  theme: any;
+  theme: ThemeColors;
   width: number;
 }
 
-function FeatureCard({ feature, index, theme, width }: FeatureCardProps) {
+function FeatureCard({ feature, theme, width }: FeatureCardProps) {
   const styles = createCardStyles(theme, width);
 
   return (
@@ -115,7 +114,7 @@ function FeatureCard({ feature, index, theme, width }: FeatureCardProps) {
 // Styles
 // =============================================================================
 
-const createStyles = (theme: any, width: number) => {
+const createStyles = (theme: ThemeColors, width: number) => {
   const isMobile = width < 768;
   const isTablet = width >= 768 && width < 1024;
 
@@ -158,7 +157,7 @@ const createStyles = (theme: any, width: number) => {
   });
 };
 
-const createCardStyles = (theme: any, width: number) => {
+const createCardStyles = (theme: ThemeColors, width: number) => {
   const isMobile = width < 768;
 
   return StyleSheet.create({

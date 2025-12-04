@@ -2,7 +2,7 @@
 // Imports
 // =============================================================================
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, StyleProp, ViewStyle } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
 
 // =============================================================================
@@ -12,7 +12,7 @@ import Svg, { Circle, Path } from 'react-native-svg';
 interface LogoProps {
   size?: number;
   color?: string;
-  style?: any;
+  style?: StyleProp<ViewStyle>;
 }
 
 /**
@@ -22,7 +22,7 @@ interface LogoProps {
  * Matches the web Logo component from landing-page-refresh.
  *
  * @param size - Size of the logo (default: 40)
- * @param color - Color of the logo (default: current theme primary)
+ * @param color - Color of the logo (default: '#007AFF')
  * @param style - Additional styles to apply
  */
 export default function Logo({ size = 40, color = '#007AFF', style }: LogoProps) {

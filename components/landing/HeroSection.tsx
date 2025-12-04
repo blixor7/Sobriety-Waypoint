@@ -13,7 +13,7 @@ import {
   Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useTheme } from '@/contexts/ThemeContext';
+import { useTheme, ThemeColors } from '@/contexts/ThemeContext';
 import { ArrowRight } from 'lucide-react-native';
 import Logo from './Logo';
 
@@ -143,7 +143,7 @@ export default function HeroSection() {
 // Styles
 // =============================================================================
 
-const createStyles = (theme: any, width: number) => {
+const createStyles = (theme: ThemeColors, width: number) => {
   const isMobile = width < 768;
   const isTablet = width >= 768 && width < 1024;
 

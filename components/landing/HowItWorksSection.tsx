@@ -3,7 +3,7 @@
 // =============================================================================
 import React from 'react';
 import { View, Text, StyleSheet, useWindowDimensions, Platform } from 'react-native';
-import { useTheme } from '@/contexts/ThemeContext';
+import { useTheme, ThemeColors } from '@/contexts/ThemeContext';
 import { UserPlus, CalendarCheck, Link2, TrendingUp } from 'lucide-react-native';
 
 // =============================================================================
@@ -79,7 +79,7 @@ export default function HowItWorksSection() {
 
         <View style={styles.stepsContainer}>
           {steps.map((step, index) => (
-            <StepCard key={index} step={step} index={index} theme={theme} width={width} />
+            <StepCard key={index} step={step} theme={theme} width={width} />
           ))}
         </View>
 
@@ -103,12 +103,11 @@ export default function HowItWorksSection() {
 
 interface StepCardProps {
   step: Step;
-  index: number;
-  theme: any;
+  theme: ThemeColors;
   width: number;
 }
 
-function StepCard({ step, index, theme, width }: StepCardProps) {
+function StepCard({ step, theme, width }: StepCardProps) {
   const styles = createCardStyles(theme, width);
 
   return (
@@ -127,7 +126,7 @@ function StepCard({ step, index, theme, width }: StepCardProps) {
 // Styles
 // =============================================================================
 
-const createStyles = (theme: any, width: number) => {
+const createStyles = (theme: ThemeColors, width: number) => {
   const isMobile = width < 768;
   const isTablet = width >= 768 && width < 1024;
 
@@ -218,7 +217,7 @@ const createStyles = (theme: any, width: number) => {
   });
 };
 
-const createCardStyles = (theme: any, width: number) => {
+const createCardStyles = (theme: ThemeColors, width: number) => {
   const isMobile = width < 768;
 
   return StyleSheet.create({

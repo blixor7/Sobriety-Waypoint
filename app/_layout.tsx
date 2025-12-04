@@ -67,7 +67,7 @@ function RootLayoutNav() {
     const inAuthGroup = segments[0] === '(tabs)';
     const inOnboarding = segments[0] === 'onboarding';
     const inAuthScreen = segments[0] === 'login' || segments[0] === 'signup';
-    const inLanding = segments.length === 0 || segments[0] === 'index';
+    const inLanding = segments[0] === 'index';
 
     // Profile is complete when user has provided their name and sobriety date during onboarding
     // Check for non-null values (null indicates user hasn't completed onboarding).

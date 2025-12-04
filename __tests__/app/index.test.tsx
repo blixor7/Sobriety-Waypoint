@@ -33,8 +33,11 @@ jest.mock('@/components/landing/LandingPage', () => {
 // =============================================================================
 
 describe('Index Route', () => {
+  const originalPlatform = Platform.OS;
+
   afterEach(() => {
     jest.clearAllMocks();
+    Platform.OS = originalPlatform;
   });
 
   it('redirects to login on native platforms', () => {
