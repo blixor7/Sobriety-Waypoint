@@ -67,6 +67,7 @@ function RootLayoutNav() {
     const inAuthGroup = segments[0] === '(tabs)';
     const inOnboarding = segments[0] === 'onboarding';
     const inAuthScreen = segments[0] === 'login' || segments[0] === 'signup';
+    const inLanding = segments.length === 0 || segments[0] === 'index';
 
     // Profile is complete when user has provided their name and sobriety date during onboarding
     // Check for non-null values (null indicates user hasn't completed onboarding).
@@ -82,9 +83,16 @@ function RootLayoutNav() {
 
     if (!user && inAuthGroup) {
       router.replace('/login');
-    } else if (!user && !inAuthScreen) {
+    } else if (!user && !inAuthScreen && !inLanding) {
+      // Allow unauthenticated users to view landing page
       router.replace('/login');
-    } else if (user && profile && isProfileComplete && (inAuthScreen || inOnboarding)) {
+    } else if (
+      user &&
+      profile &&
+      isProfileComplete &&
+      (inAuthScreen || inOnboarding || inLanding)
+    ) {
+      // Redirect authenticated users with complete profiles to main app
       router.replace('/(tabs)');
     } else if (user && profile && !isProfileComplete && !inOnboarding) {
       router.replace('/onboarding');
@@ -104,6 +112,7 @@ function RootLayoutNav() {
   return (
     <>
       <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="index" />
         <Stack.Screen name="login" />
         <Stack.Screen name="signup" />
         <Stack.Screen name="onboarding" />
