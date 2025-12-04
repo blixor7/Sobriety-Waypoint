@@ -277,7 +277,7 @@ const createStyles = (theme: any, width: number) => {
     },
     noticeContainer: {
       backgroundColor: Platform.select({
-        web: 'rgba(210, 30%, 96%, 0.5)', // bg-secondary/50
+        web: 'hsla(210, 30%, 96%, 0.5)', // bg-secondary/50
         default: theme.surface,
       }),
       borderRadius: 8,

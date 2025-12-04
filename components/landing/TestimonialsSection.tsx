@@ -24,10 +24,11 @@ interface Testimonial {
  * Testimonials section component displaying user success stories.
  *
  * Shows three testimonials from users in recovery with their quotes, names, and
- * sobriety milestones. Features animated entrance effects and responsive grid layout.
- * Builds trust with potential users through authentic recovery stories.
+ * sobriety milestones. Features responsive grid layout that adapts from single column
+ * on mobile to horizontal layout on desktop. Builds trust with potential users through
+ * authentic recovery stories.
  *
- * @returns The testimonials section with animated testimonial cards
+ * @returns The testimonials section with testimonial cards
  */
 export default function TestimonialsSection() {
   const { theme } = useTheme();
@@ -162,7 +163,7 @@ const createStyles = (theme: ThemeColors, width: number) => {
   return StyleSheet.create({
     container: {
       backgroundColor: Platform.select({
-        web: 'rgba(210, 30%, 96%, 0.3)', // bg-secondary/30
+        web: 'hsla(210, 30%, 96%, 0.3)', // bg-secondary/30
         default: theme.surface,
       }),
       paddingHorizontal: isMobile ? 24 : isTablet ? 48 : 80,

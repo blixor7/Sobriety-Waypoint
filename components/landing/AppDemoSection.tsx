@@ -126,7 +126,7 @@ const createStyles = (theme: ThemeColors, width: number) => {
     },
     content: {
       maxWidth: 1200,
-      width: '120%',
+      width: '100%',
     },
     sectionTitle: {
       fontSize: isMobile ? 32 : isTablet ? 40 : 48,
@@ -159,7 +159,7 @@ const createCardStyles = (theme: ThemeColors, width: number) => {
     card: {
       flex: 1,
       alignItems: 'center',
-      maxWidth: isMobile ? '120%' : 400,
+      maxWidth: isMobile ? '100%' : 400,
       ...Platform.select({
         web: {},
         default: {
@@ -174,18 +174,18 @@ const createCardStyles = (theme: ThemeColors, width: number) => {
     imageContainer: {
       position: 'relative',
       marginBottom: 24,
-      width: '120%',
+      width: '100%',
       maxWidth: 280,
       alignItems: 'center',
     },
     phoneFrame: {
-      width: '120%',
+      width: '100%',
       maxWidth: 280,
       padding: 2,
       borderRadius: 12,
       ...Platform.select({
         web: {
-          width: '120%',
+          width: '100%',
           backgroundImage: 'linear-gradient(to bottom, rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.02))',
           borderWidth: 1,
           borderColor: 'rgba(0, 0, 0, 0.1)',

@@ -39,28 +39,28 @@ export default function HowItWorksSection() {
   const steps: Step[] = [
     {
       number: '01',
-      icon: <UserPlus size={iconSize} color="#ffffff" />,
+      icon: <UserPlus size={iconSize} color={theme.textOnPrimary} />,
       title: 'Create Your Account',
       description:
         'Sign up in seconds with email or continue with Google. Your journey starts here.',
     },
     {
       number: '02',
-      icon: <CalendarCheck size={iconSize} color="#ffffff" />,
+      icon: <CalendarCheck size={iconSize} color={theme.textOnPrimary} />,
       title: 'Set Your Sobriety Date',
       description:
         'Mark your starting point and watch as the days of progress add up. Every day counts.',
     },
     {
       number: '03',
-      icon: <Link2 size={iconSize} color="#ffffff" />,
+      icon: <Link2 size={iconSize} color={theme.textOnPrimary} />,
       title: 'Connect With Your Sponsor',
       description:
         'Use invite codes to connect with your sponsor or sponsee. Build your support network.',
     },
     {
       number: '04',
-      icon: <TrendingUp size={iconSize} color="#ffffff" />,
+      icon: <TrendingUp size={iconSize} color={theme.textOnPrimary} />,
       title: 'Track Your Progress',
       description:
         'Complete tasks, celebrate milestones, and stay accountable on your recovery journey.',
@@ -78,8 +78,8 @@ export default function HowItWorksSection() {
         </Text>
 
         <View style={styles.stepsContainer}>
-          {steps.map((step, index) => (
-            <StepCard key={index} step={step} theme={theme} width={width} />
+          {steps.map((step) => (
+            <StepCard key={step.number} step={step} theme={theme} width={width} />
           ))}
         </View>
 
@@ -235,6 +235,7 @@ const createCardStyles = (theme: ThemeColors, width: number) => {
     stepNumber: {
       fontSize: 50,
       fontFamily: theme.fontBold, // font-serif equivalent
+      // Using rgba with primary color RGB values (0, 122, 255) at 12% opacity
       color: 'rgba(0, 122, 255, 0.12)', // text-primary/12
       lineHeight: 50,
       marginBottom: 16,
@@ -243,15 +244,15 @@ const createCardStyles = (theme: ThemeColors, width: number) => {
       width: 48,
       height: 48,
       borderRadius: 12,
-      backgroundColor: '#007AFF',
+      backgroundColor: theme.primary,
       justifyContent: 'center',
       alignItems: 'center',
       ...Platform.select({
         web: {
-          backgroundImage: 'linear-gradient(135deg, hsl(217 91% 60%) 0%, hsl(217 91% 50%) 100%)',
+          backgroundImage: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.primaryLight} 100%)`,
         },
         default: {
-          shadowColor: '#007AFF',
+          shadowColor: theme.primary,
           shadowOffset: { width: 0, height: 4 },
           shadowOpacity: 0.3,
           shadowRadius: 8,

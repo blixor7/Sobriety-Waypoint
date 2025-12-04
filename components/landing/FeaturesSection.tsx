@@ -121,7 +121,7 @@ const createStyles = (theme: ThemeColors, width: number) => {
   return StyleSheet.create({
     container: {
       backgroundColor: Platform.select({
-        web: 'rgba(210, 30%, 96%, 0.3)', // bg-secondary/30
+        web: 'hsla(210, 30%, 96%, 0.3)', // bg-secondary/30
         default: theme.surface,
       }),
       paddingHorizontal: isMobile ? 24 : isTablet ? 48 : 80,

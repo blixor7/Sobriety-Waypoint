@@ -1,7 +1,7 @@
 import React from 'react';
 import { Platform, Text } from 'react-native';
-import { render } from '@testing-library/react-native';
 import Index from '../../app/index';
+import { renderWithProviders } from '../test-utils';
 
 // Mock expo-router
 jest.mock('expo-router', () => ({
@@ -37,7 +37,7 @@ describe('Index Route', () => {
     // Mock native platform
     Platform.OS = 'ios';
 
-    const { getByText } = render(<Index />);
+    const { getByText } = renderWithProviders(<Index />);
 
     expect(getByText('Redirected to /login')).toBeTruthy();
   });
@@ -46,7 +46,7 @@ describe('Index Route', () => {
     // Mock web platform
     Platform.OS = 'web';
 
-    const { getByText } = render(<Index />);
+    const { getByText } = renderWithProviders(<Index />);
 
     expect(getByText('Landing Page')).toBeTruthy();
   });
