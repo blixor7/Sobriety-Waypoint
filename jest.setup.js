@@ -221,6 +221,25 @@ jest.mock('expo-constants', () => ({
   },
 }));
 
+// Mock expo-web-browser
+jest.mock('expo-web-browser', () => ({
+  maybeCompleteAuthSession: jest.fn(),
+  openAuthSessionAsync: jest.fn().mockResolvedValue({ type: 'cancel' }),
+}));
+
+// Mock expo-linking
+jest.mock('expo-linking', () => ({
+  addEventListener: jest.fn(() => ({ remove: jest.fn() })),
+  getInitialURL: jest.fn().mockResolvedValue(null),
+  createURL: jest.fn((path) => `sobrietywaypoint://${path}`),
+  parse: jest.fn((url) => ({ path: url, queryParams: {} })),
+}));
+
+// Mock expo-auth-session
+jest.mock('expo-auth-session', () => ({
+  makeRedirectUri: jest.fn(() => 'sobrietywaypoint://auth/callback'),
+}));
+
 // Mock @sentry/react-native
 jest.mock('@sentry/react-native', () => ({
   addBreadcrumb: jest.fn(),
@@ -234,6 +253,46 @@ jest.mock('@sentry/react-native', () => ({
   mobileReplayIntegration: jest.fn(() => ({})),
   feedbackIntegration: jest.fn(() => ({})),
 }));
+
+// Mock @/lib/sentry functions
+jest.mock('@/lib/sentry', () => ({
+  initializeSentry: jest.fn(),
+  navigationIntegration: {
+    registerNavigationContainer: jest.fn(),
+  },
+  setSentryUser: jest.fn(),
+  clearSentryUser: jest.fn(),
+  setSentryContext: jest.fn(),
+}));
+
+// Mock @/lib/logger
+jest.mock('@/lib/logger', () => ({
+  logger: {
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+    debug: jest.fn(),
+  },
+  LogCategory: {
+    DATABASE: 'database',
+    AUTH: 'auth',
+    UI: 'ui',
+  },
+}));
+
+// Mock @/lib/date
+jest.mock('@/lib/date', () => ({
+  DEVICE_TIMEZONE: 'America/New_York',
+  parseDateAsLocal: jest.fn((dateString) => new Date(dateString)),
+}));
+
+// Mock @/lib/supabase - must be after @supabase/supabase-js mock
+jest.mock('@/lib/supabase', () => {
+  const { createClient } = require('@supabase/supabase-js');
+  return {
+    supabase: createClient('https://test.supabase.co', 'test-anon-key'),
+  };
+});
 
 // Mock lucide-react-native icons
 jest.mock('lucide-react-native', () => {
@@ -346,13 +405,16 @@ jest.mock('@supabase/supabase-js', () => {
       auth: {
         signUp: jest.fn(() => Promise.resolve({ data: null, error: null })),
         signInWithPassword: jest.fn(() => Promise.resolve({ data: null, error: null })),
+        signInWithOAuth: jest.fn(() => Promise.resolve({ data: null, error: null })),
         signOut: jest.fn(() => Promise.resolve({ error: null })),
         onAuthStateChange: jest.fn(() => ({
           data: { subscription: { unsubscribe: jest.fn() } },
         })),
         getSession: jest.fn(() => Promise.resolve({ data: { session: null }, error: null })),
+        setSession: jest.fn(() => Promise.resolve({ data: { session: null }, error: null })),
       },
       from: jest.fn(() => createQueryBuilder()),
+      rpc: jest.fn(() => Promise.resolve({ data: null, error: null })),
     })),
   };
 });
