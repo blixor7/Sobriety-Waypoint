@@ -2342,7 +2342,7 @@ describe('ProfileScreen', () => {
           return {
             select: jest.fn().mockImplementation(() => ({
               eq: jest.fn().mockImplementation((field: string) => {
-                if (field === 'sponsor_id' && typeof arguments !== 'undefined') {
+                if (field === 'sponsor_id') {
                   // For the existing relationship check - return an existing relationship
                   return {
                     eq: jest.fn().mockReturnValue({
@@ -2710,7 +2710,7 @@ describe('ProfileScreen', () => {
         (
           _title: string,
           _message: string,
-          buttons: Array<{ text: string; onPress?: () => void }>
+          buttons: { text: string; onPress?: () => void }[]
         ) => {
           const disconnectButton = buttons?.find((b) => b.text === 'Disconnect');
           if (disconnectButton?.onPress) {
@@ -2909,7 +2909,7 @@ describe('ProfileScreen', () => {
         (
           _title: string,
           _message: string,
-          buttons: Array<{ text: string; onPress?: () => void }>
+          buttons: { text: string; onPress?: () => void }[]
         ) => {
           const disconnectButton = buttons?.find((b) => b.text === 'Disconnect');
           if (disconnectButton?.onPress) {
