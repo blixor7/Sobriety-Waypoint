@@ -140,15 +140,17 @@ jest.mock('@/contexts/ThemeContext', () => ({
 }));
 
 // Mock useDaysSober hook
+// Note: Jest requires mock variables to be prefixed with 'mock' (not suffixed)
+// due to hoisting behavior - variables must match /^mock/i pattern
 let mockDaysSober = 180;
-let isLoadingDaysSoberMock = false;
+let mockIsLoadingDaysSober = false;
 jest.mock('@/hooks/useDaysSober', () => ({
   useDaysSober: jest.fn(() => ({
     daysSober: mockDaysSober,
     currentStreakStartDate: '2024-01-01',
     journeyStartDate: new Date('2024-01-01'),
     hasSlipUps: false,
-    loading: isLoadingDaysSoberMock,
+    loading: mockIsLoadingDaysSober,
     error: null,
   })),
 }));
@@ -261,7 +263,7 @@ describe('HomeScreen', () => {
     mockRelationshipsAsSponsee = [];
     mockTasks = [];
     mockDaysSober = 180;
-    isLoadingDaysSoberMock = false;
+    mockIsLoadingDaysSober = false;
   });
 
   describe('Header', () => {
@@ -295,7 +297,7 @@ describe('HomeScreen', () => {
     });
 
     it('shows loading indicator when loading', async () => {
-      isLoadingDaysSoberMock = true;
+      mockIsLoadingDaysSober = true;
 
       render(<HomeScreen />);
 
@@ -914,11 +916,7 @@ describe('HomeScreen', () => {
 
       // Mock Alert.alert to auto-confirm
       Alert.alert.mockImplementation(
-        (
-          _title: string,
-          _message: string,
-          buttons?: { text: string; onPress?: () => void }[]
-        ) => {
+        (_title: string, _message: string, buttons?: { text: string; onPress?: () => void }[]) => {
           if (!buttons) return;
           const disconnectButton = buttons.find((b) => b.text === 'Disconnect');
           if (disconnectButton?.onPress) {
@@ -946,11 +944,7 @@ describe('HomeScreen', () => {
 
       // Mock Alert.alert to auto-cancel
       Alert.alert.mockImplementation(
-        (
-          _title: string,
-          _message: string,
-          buttons?: { text: string; onPress?: () => void }[]
-        ) => {
+        (_title: string, _message: string, buttons?: { text: string; onPress?: () => void }[]) => {
           if (!buttons) return;
           const cancelButton = buttons.find((b) => b.text === 'Cancel');
           if (cancelButton?.onPress) {
@@ -1032,11 +1026,7 @@ describe('HomeScreen', () => {
 
       // Mock Alert.alert to auto-confirm
       Alert.alert.mockImplementation(
-        (
-          _title: string,
-          _message: string,
-          buttons?: { text: string; onPress?: () => void }[]
-        ) => {
+        (_title: string, _message: string, buttons?: { text: string; onPress?: () => void }[]) => {
           if (buttons) {
             const disconnectButton = buttons.find((b) => b.text === 'Disconnect');
             if (disconnectButton?.onPress) {

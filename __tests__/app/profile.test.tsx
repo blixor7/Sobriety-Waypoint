@@ -2707,11 +2707,7 @@ describe('ProfileScreen', () => {
       const { Alert } = jest.requireMock('react-native');
       // Mock Alert.alert to auto-confirm
       Alert.alert.mockImplementation(
-        (
-          _title: string,
-          _message: string,
-          buttons: { text: string; onPress?: () => void }[]
-        ) => {
+        (_title: string, _message: string, buttons: { text: string; onPress?: () => void }[]) => {
           const disconnectButton = buttons?.find((b) => b.text === 'Disconnect');
           if (disconnectButton?.onPress) {
             disconnectButton.onPress();
@@ -2906,11 +2902,7 @@ describe('ProfileScreen', () => {
       const { Alert } = jest.requireMock('react-native');
       // Mock Alert.alert to auto-confirm disconnect
       Alert.alert.mockImplementation(
-        (
-          _title: string,
-          _message: string,
-          buttons: { text: string; onPress?: () => void }[]
-        ) => {
+        (_title: string, _message: string, buttons: { text: string; onPress?: () => void }[]) => {
           const disconnectButton = buttons?.find((b) => b.text === 'Disconnect');
           if (disconnectButton?.onPress) {
             disconnectButton.onPress();
