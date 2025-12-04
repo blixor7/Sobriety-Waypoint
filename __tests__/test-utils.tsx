@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, RenderOptions } from '@testing-library/react-native';
 import { ThemeProvider } from '@/contexts/ThemeContext';
+import { AuthProvider } from '@/contexts/AuthContext';
 
 /**
  * Test utility to render components wrapped with any required providers.
@@ -13,5 +14,10 @@ export function renderWithProviders(
   ui: React.ReactElement,
   options?: Omit<RenderOptions, 'queries'>
 ) {
-  return render(<ThemeProvider>{ui}</ThemeProvider>, options);
+  return render(
+    <AuthProvider>
+      <ThemeProvider>{ui}</ThemeProvider>
+    </AuthProvider>,
+    options
+  );
 }
