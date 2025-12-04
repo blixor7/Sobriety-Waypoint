@@ -105,7 +105,10 @@ describe('Sentry Module', () => {
 
     it('sets environment to development when __DEV__ is true', () => {
       process.env.EXPO_PUBLIC_SENTRY_DSN = 'https://test@sentry.io/123';
-      // __DEV__ is already true in jest
+
+      // Save original __DEV__ value and set to true for this test
+      const originalDev = global.__DEV__;
+      (global as unknown as { __DEV__: boolean }).__DEV__ = true;
 
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { initializeSentry } = require('@/lib/sentry');
@@ -116,6 +119,9 @@ describe('Sentry Module', () => {
           environment: 'development',
         })
       );
+
+      // Restore original value
+      (global as unknown as { __DEV__: boolean }).__DEV__ = originalDev;
     });
 
     it('handles Sentry.init throwing an error', () => {

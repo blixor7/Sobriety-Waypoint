@@ -157,11 +157,12 @@ jest.mock('@/contexts/ThemeContext', () => ({
 }));
 
 // Mock useDaysSober hook
+// Note: Use noon time (T12:00:00) to avoid timezone date shifts between UTC and local time
 jest.mock('@/hooks/useDaysSober', () => ({
   useDaysSober: jest.fn(() => ({
     daysSober: 180,
-    journeyStartDate: new Date('2024-01-01'),
-    currentStreakStartDate: new Date('2024-01-01'),
+    journeyStartDate: new Date('2024-01-01T12:00:00'),
+    currentStreakStartDate: new Date('2024-01-01T12:00:00'),
     hasSlipUps: false,
     loading: false,
     error: null,
@@ -560,8 +561,8 @@ describe('ProfileScreen', () => {
       render(<ProfileScreen />);
 
       await waitFor(() => {
-        // Date format may vary but should include "December" based on our mock
-        expect(screen.getByText(/December 31, 2023/)).toBeTruthy();
+        // Mock has journeyStartDate: new Date('2024-01-01') which formats as January 1, 2024
+        expect(screen.getByText(/January 1, 2024/)).toBeTruthy();
       });
     });
   });
