@@ -29,6 +29,13 @@ import TaskCreationModal from '@/components/TaskCreationModal';
 import { logger, LogCategory } from '@/lib/logger';
 import { parseDateAsLocal } from '@/lib/date';
 
+/**
+ * Render the home dashboard showing the user's sobriety summary, sponsor/sponsee relationships, recent tasks, and quick actions.
+ *
+ * Fetches relationships and recent tasks from the backend, supports pull-to-refresh, allows disconnecting relationships and creating tasks for sponsees, and displays milestone and days-sober information.
+ *
+ * @returns The Home screen React element.
+ */
 export default function HomeScreen() {
   const { profile } = useAuth();
   const { theme } = useTheme();
