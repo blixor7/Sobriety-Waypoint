@@ -19,10 +19,16 @@ const mockInit = jest.fn();
 const mockSetUser = jest.fn();
 const mockSetContext = jest.fn();
 const mockCaptureException = jest.fn();
+const mockAddBreadcrumb = jest.fn();
 const mockWrap = jest.fn((component) => component);
-const mockReactNavigationIntegration = jest.fn(() => ({ name: 'ReactNavigation' }));
+const mockReactNavigationIntegration = jest.fn(() => ({
+  registerNavigationContainer: jest.fn(),
+}));
 const mockMobileReplayIntegration = jest.fn(() => ({ name: 'MobileReplay' }));
 const mockFeedbackIntegration = jest.fn(() => ({ name: 'Feedback' }));
+
+// Unmock the sentry lib to test real implementation
+jest.unmock('@/lib/sentry');
 
 // Use factory function that returns the same mock references directly
 // This ensures mocks persist across resetModules()
@@ -33,6 +39,7 @@ jest.mock('@sentry/react-native', () => {
     setUser: mockSetUser,
     setContext: mockSetContext,
     captureException: mockCaptureException,
+    addBreadcrumb: mockAddBreadcrumb,
     wrap: mockWrap,
     reactNavigationIntegration: mockReactNavigationIntegration,
     mobileReplayIntegration: mockMobileReplayIntegration,
@@ -123,8 +130,8 @@ describe('Sentry Module', () => {
 
     it('sets environment to development when __DEV__ is true', () => {
       // Save original __DEV__ value and set to true for this test
-      const originalDev = global.__DEV__;
-      (global as unknown as { __DEV__: boolean }).__DEV__ = true;
+      const originalDev = (globalThis as any).__DEV__;
+      (globalThis as any).__DEV__ = true;
 
       // Set env var BEFORE resetModules so it's available when module loads
       process.env.EXPO_PUBLIC_SENTRY_DSN = 'https://test@sentry.io/123';
@@ -148,7 +155,7 @@ describe('Sentry Module', () => {
       );
 
       // Restore original value
-      (global as unknown as { __DEV__: boolean }).__DEV__ = originalDev;
+      (globalThis as any).__DEV__ = originalDev;
     });
 
     it('handles Sentry.init throwing an error', () => {
@@ -386,12 +393,18 @@ describe('Sentry Module', () => {
   describe('navigationIntegration', () => {
     it('exports navigation integration', () => {
       process.env.EXPO_PUBLIC_SENTRY_DSN = 'https://test@sentry.io/123';
+      jest.resetModules();
 
+      // Re-require the mocked module to get the mock reference after reset
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const sentryModule = require('@sentry/react-native');
+      sentryModule.reactNavigationIntegration.mockClear();
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { navigationIntegration } = require('@/lib/sentry');
 
-      expect(navigationIntegration).toEqual({ name: 'ReactNavigation' });
-      expect(mockReactNavigationIntegration).toHaveBeenCalled();
+      // navigationIntegration is created at module load time, so it should have registerNavigationContainer
+      expect(navigationIntegration).toHaveProperty('registerNavigationContainer');
+      expect(sentryModule.reactNavigationIntegration).toHaveBeenCalled();
     });
   });
 });
