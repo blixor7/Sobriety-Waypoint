@@ -730,7 +730,7 @@ describe('AppleSignInButton', () => {
       });
     });
 
-    it('uses empty string fallback when getUser returns null user', async () => {
+    it('logs warning and skips profile update when getUser returns null user', async () => {
       mockSignInAsync.mockResolvedValueOnce({
         identityToken: 'mock-identity-token',
         fullName: {
@@ -747,12 +747,18 @@ describe('AppleSignInButton', () => {
       fireEvent.press(screen.getByTestId('apple-sign-in-button'));
 
       await waitFor(() => {
-        // Should use empty string as fallback when user is null
-        expect(mockProfileUpdateEq).toHaveBeenCalledWith('id', '');
+        // Should log warning about missing user ID
+        expect(mockLoggerWarn).toHaveBeenCalledWith(
+          'Cannot update profile: user ID not available after sign-in',
+          { category: 'auth' }
+        );
       });
+
+      // Should NOT attempt to update the profile
+      expect(mockProfileUpdate).not.toHaveBeenCalled();
     });
 
-    it('uses empty string fallback when getUser returns undefined user', async () => {
+    it('logs warning and skips profile update when getUser returns undefined user', async () => {
       mockSignInAsync.mockResolvedValueOnce({
         identityToken: 'mock-identity-token',
         fullName: {
@@ -769,9 +775,15 @@ describe('AppleSignInButton', () => {
       fireEvent.press(screen.getByTestId('apple-sign-in-button'));
 
       await waitFor(() => {
-        // Should use empty string as fallback when user is undefined
-        expect(mockProfileUpdateEq).toHaveBeenCalledWith('id', '');
+        // Should log warning about missing user ID
+        expect(mockLoggerWarn).toHaveBeenCalledWith(
+          'Cannot update profile: user ID not available after sign-in',
+          { category: 'auth' }
+        );
       });
+
+      // Should NOT attempt to update the profile
+      expect(mockProfileUpdate).not.toHaveBeenCalled();
     });
   });
 });

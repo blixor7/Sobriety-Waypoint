@@ -113,25 +113,34 @@ export function AppleSignInButton({ onSuccess, onError }: AppleSignInButtonProps
 
         // Also update the profile directly since it was likely created without name data
         // due to the race condition with onAuthStateChange
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .update({
-            first_name: firstName,
-            last_initial: lastInitial,
-          })
-          .eq('id', (await supabase.auth.getUser()).data.user?.id ?? '');
+        const { data: userData } = await supabase.auth.getUser();
+        const userId = userData.user?.id;
 
-        if (profileError) {
-          logger.warn('Failed to update profile with Apple name data', {
+        if (!userId) {
+          logger.warn('Cannot update profile: user ID not available after sign-in', {
             category: LogCategory.AUTH,
-            error: profileError.message,
           });
         } else {
-          logger.info('Profile updated with Apple name data', {
-            category: LogCategory.AUTH,
-            firstName,
-            lastInitial,
-          });
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .update({
+              first_name: firstName,
+              last_initial: lastInitial,
+            })
+            .eq('id', userId);
+
+          if (profileError) {
+            logger.warn('Failed to update profile with Apple name data', {
+              category: LogCategory.AUTH,
+              error: profileError.message,
+            });
+          } else {
+            logger.info('Profile updated with Apple name data', {
+              category: LogCategory.AUTH,
+              firstName,
+              lastInitial,
+            });
+          }
         }
       }
 
