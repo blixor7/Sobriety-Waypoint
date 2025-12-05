@@ -130,6 +130,13 @@ global.processColor = (color) => color;
 // Define __DEV__ for tests
 global.__DEV__ = false;
 
+// Ensure setTimeout/clearTimeout are available in Node.js test environment
+// These are needed even when using jest.useFakeTimers()
+global.setTimeout = global.setTimeout || setTimeout;
+global.clearTimeout = global.clearTimeout || clearTimeout;
+global.setInterval = global.setInterval || setInterval;
+global.clearInterval = global.clearInterval || clearInterval;
+
 // Suppress react-test-renderer deprecation warnings
 const originalError = console.error;
 console.error = (...args) => {
@@ -290,10 +297,18 @@ jest.mock('@/lib/logger', () => ({
 }));
 
 // Mock @/lib/date
-jest.mock('@/lib/date', () => ({
-  DEVICE_TIMEZONE: 'America/New_York',
-  parseDateAsLocal: jest.fn((dateString) => new Date(dateString)),
-}));
+// Note: We spread actualDate first, then override specific functions
+// This ensures getDateDiffInDays and other functions use the real implementation
+jest.mock('@/lib/date', () => {
+  const actualDate = jest.requireActual('@/lib/date');
+  return {
+    ...actualDate, // Include all actual exports first
+    DEVICE_TIMEZONE: 'America/New_York', // Override DEVICE_TIMEZONE
+    parseDateAsLocal: jest.fn((dateString) => new Date(dateString)), // Mock parseDateAsLocal
+    // getDateDiffInDays, formatDateWithTimezone, formatLocalDate, getUserTimezone
+    // all use the actual implementation from the spread above
+  };
+});
 
 // Mock image assets globally to prevent Jest from trying to parse them
 // These will be handled by moduleNameMapper, but adding explicit mocks as fallback
