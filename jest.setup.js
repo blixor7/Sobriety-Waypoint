@@ -130,6 +130,15 @@ global.processColor = (color) => color;
 // Define __DEV__ for tests
 global.__DEV__ = false;
 
+// Suppress react-test-renderer deprecation warnings
+const originalError = console.error;
+console.error = (...args) => {
+  if (typeof args[0] === 'string' && args[0].includes('react-test-renderer is deprecated')) {
+    return;
+  }
+  originalError(...args);
+};
+
 // Mock expo-router
 jest.mock('expo-router', () => ({
   useRouter: () => ({
