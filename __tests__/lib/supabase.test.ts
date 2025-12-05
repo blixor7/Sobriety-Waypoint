@@ -63,6 +63,15 @@ describe('Supabase Module', () => {
     }
   });
 
+  // Helper function to assert createClient was called with correct env config
+  const assertCreateClientCalledWithEnvConfig = (supabaseJs: any) => {
+    expect(supabaseJs.createClient).toHaveBeenCalled();
+    const calls = (supabaseJs.createClient as jest.Mock).mock.calls;
+    expect(calls.length).toBeGreaterThan(0);
+    expect(calls[0][0]).toBe('https://test.supabase.co');
+    expect(calls[0][1]).toBe('test-anon-key');
+  };
+
   describe('supabase client', () => {
     it('exports a supabase client proxy', () => {
       jest.resetModules();
@@ -73,7 +82,6 @@ describe('Supabase Module', () => {
     });
 
     it('lazily initializes client when accessed', () => {
-      mockCreateClient.mockClear();
       jest.resetModules();
 
       // Re-require the mocked module to get the mock reference after reset
@@ -87,12 +95,7 @@ describe('Supabase Module', () => {
 
       // After resetModules, we need to check the mock from the re-required module
       // The mock factory is re-evaluated, so we check the actual mock that was used
-      expect(supabaseJs.createClient).toHaveBeenCalled();
-      // Verify it was called with at least URL and key (options may be passed separately in some Jest versions)
-      const calls = (supabaseJs.createClient as jest.Mock).mock.calls;
-      expect(calls.length).toBeGreaterThan(0);
-      expect(calls[0][0]).toBe('https://test.supabase.co');
-      expect(calls[0][1]).toBe('test-anon-key');
+      assertCreateClientCalledWithEnvConfig(supabaseJs);
     });
 
     it('binds functions to client correctly', () => {
@@ -331,7 +334,6 @@ describe('Supabase Module', () => {
 
   describe('environment validation', () => {
     it('creates client with correct configuration', () => {
-      mockCreateClient.mockClear();
       jest.resetModules();
 
       // Re-require the mocked module to get the mock reference after reset
@@ -343,14 +345,7 @@ describe('Supabase Module', () => {
       // Trigger initialization
       supabase.auth;
 
-      // After resetModules, we need to check the mock from the re-required module
-      // The mock factory is re-evaluated, so we check the actual mock that was used
-      expect(supabaseJs.createClient).toHaveBeenCalled();
-      // Verify it was called with at least URL and key (options may be passed separately in some Jest versions)
-      const calls = (supabaseJs.createClient as jest.Mock).mock.calls;
-      expect(calls.length).toBeGreaterThan(0);
-      expect(calls[0][0]).toBe('https://test.supabase.co');
-      expect(calls[0][1]).toBe('test-anon-key');
+      assertCreateClientCalledWithEnvConfig(supabaseJs);
     });
   });
 });
