@@ -109,6 +109,14 @@ interface StepCardProps {
   width: number;
 }
 
+/**
+ * Renders an individual step card with number, icon, title, and description.
+ *
+ * @param props - Component props
+ * @param props.step - Step data including number, icon, title, and description
+ * @param props.theme - Theme colors for styling
+ * @param props.width - Window width for responsive styling
+ */
 function StepCard({ step, theme, width }: StepCardProps) {
   const styles = createCardStyles(theme, width);
 

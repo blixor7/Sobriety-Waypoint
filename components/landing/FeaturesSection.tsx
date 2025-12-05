@@ -78,8 +78,8 @@ export default function FeaturesSection() {
         </Text>
 
         <View style={styles.featuresGrid}>
-          {features.map((feature, index) => (
-            <FeatureCard key={index} feature={feature} theme={theme} width={width} />
+          {features.map((feature) => (
+            <FeatureCard key={feature.title} feature={feature} theme={theme} width={width} />
           ))}
         </View>
       </View>

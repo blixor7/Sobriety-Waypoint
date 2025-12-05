@@ -13,6 +13,7 @@ import {
 import { useRouter } from 'expo-router';
 import { useTheme, ThemeColors } from '@/contexts/ThemeContext';
 import { Shield, Zap, Target, ArrowRight } from 'lucide-react-native';
+import { withOpacity } from '@/utils/colors';
 import Logo from './Logo';
 
 // =============================================================================
@@ -196,8 +197,7 @@ const createStyles = (theme: ThemeColors, width: number) => {
       alignItems: 'center',
       ...Platform.select({
         web: {
-          backgroundImage:
-            'linear-gradient(135deg, hsl(217 91% 50% / 0.1) 0%, hsl(217 91% 50% / 0.05) 100%)',
+          backgroundImage: `linear-gradient(135deg, ${withOpacity(theme.primary, 0.1)} 0%, ${withOpacity(theme.primary, 0.05)} 100%)`,
         },
         default: {
           backgroundColor: theme.primaryLight,

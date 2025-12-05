@@ -2,8 +2,8 @@
 // Imports
 // =============================================================================
 import React from 'react';
-import HeroSection from '../../../components/landing/HeroSection';
-import { renderWithProviders } from '../../test-utils';
+import HeroSection from '@/components/landing/HeroSection';
+import { renderWithProviders } from '@/__tests__/test-utils';
 
 // =============================================================================
 // Mocks

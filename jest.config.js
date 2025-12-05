@@ -32,6 +32,7 @@ module.exports = {
     'contexts/**/*.{ts,tsx}',
     'hooks/**/*.{ts,tsx}',
     'lib/**/*.{ts,tsx}',
+    'utils/**/*.{ts,tsx}',
     '!**/*.d.ts',
     '!**/node_modules/**',
   ],

@@ -91,6 +91,14 @@ interface DemoCardProps {
   width: number;
 }
 
+/**
+ * Renders a demo card with phone-framed image, title, and description.
+ *
+ * @param props - Component props
+ * @param props.demo - Demo data including image, title, and description
+ * @param props.theme - Theme colors for styling
+ * @param props.width - Window width for responsive styling
+ */
 function DemoCard({ demo, theme, width }: DemoCardProps) {
   const styles = createCardStyles(theme, width);
 

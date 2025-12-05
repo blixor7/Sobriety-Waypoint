@@ -96,6 +96,14 @@ interface TestimonialCardProps {
   width: number;
 }
 
+/**
+ * Renders a testimonial card with quote, author information, and sobriety badge.
+ *
+ * @param props - Component props
+ * @param props.testimonial - Testimonial data including quote, author, role, and days sober
+ * @param props.theme - Theme colors for styling
+ * @param props.width - Window width for responsive styling
+ */
 function TestimonialCard({ testimonial, theme, width }: TestimonialCardProps) {
   const styles = createCardStyles(theme, width);
 
@@ -121,6 +129,15 @@ interface StatItemProps {
   width: number;
 }
 
+/**
+ * Renders a statistics item with a large value and descriptive label.
+ *
+ * @param props - Component props
+ * @param props.value - The statistic value to display
+ * @param props.label - The label describing the statistic
+ * @param props.theme - Theme colors for styling
+ * @param props.width - Window width for responsive styling
+ */
 function StatItem({ value, label, theme, width }: StatItemProps) {
   const isMobile = width < 768;
 

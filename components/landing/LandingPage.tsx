@@ -2,7 +2,7 @@
 // Imports
 // =============================================================================
 import React from 'react';
-import { View, ScrollView, StyleSheet, useWindowDimensions } from 'react-native';
+import { View, ScrollView, StyleSheet } from 'react-native';
 import { useTheme, ThemeColors } from '@/contexts/ThemeContext';
 import HeroSection from './HeroSection';
 import FeaturesSection from './FeaturesSection';
@@ -27,7 +27,6 @@ import Footer from './Footer';
  */
 export default function LandingPage() {
   const { theme } = useTheme();
-  const { width } = useWindowDimensions();
 
   const styles = createStyles(theme);
 

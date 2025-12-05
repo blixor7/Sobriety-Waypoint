@@ -1,7 +1,7 @@
 import React from 'react';
 import { Platform } from 'react-native';
-import Index from '../../app/index';
-import { renderWithProviders } from '../test-utils';
+import Index from '@/app/index';
+import { renderWithProviders } from '@/__tests__/test-utils';
 
 // Mock expo-router
 jest.mock('expo-router', () => {
